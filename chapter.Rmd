@@ -18,11 +18,8 @@ csl: apa.csl
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(ggplot2)
 library(sf)
-library(ineq)
-library(lubridate)
 library(tidyr)
 library(dplyr)
-library(purrr)
 ```
 
 ```{r Rmarkdown_setup, include=FALSE}
@@ -140,9 +137,10 @@ Since we are particularly interested in analyzing which regions in Europe have m
 
 ``` {r recode trustpoli}
 
-# if value of trust in police is above or equal to the mean, assign 1, otherwise 0
 ess <- ess %>%
-  mutate(trstplc = ifelse(trstplc >= mean(trstplc, na.rm = T), 1, 0))
+  # if trust is above or equal to mean, 1, 0
+  mutate(trstplc = ifelse(trstplc >= mean(trstplc, na.rm = T), 1, 0)) %>%
+  filter(!is.na(trstplc)) # delete NAs
 
 ```
 
@@ -239,21 +237,18 @@ pop <- read.csv(text = URL)
 pop <- pop %>%
   mutate(area = 1:n()) %>%                 # create numeric id value
   rename("domain" = "X.U.FEFF.domain") %>% # rename region column name
-  subset(select = c(1, 3, 2))              # reorder columns
+  subset(select = c(1, 3, 2)) %>%          # reorder columns
+  filter(domain %in% ess$domain)           # filter out areas not present in ESS
 
 ```
 
 
 
------------select from one another
+select from one another
 
 ``` {r select areas}
-
-pop <- pop %>%
-  filter(pop$domain %in% ess$domain) # filter out areas not present in ESS
-
 ess <- ess %>%
-  filter(ess$domain %in% pop$domain) # filter out areas not present in population dataset
+  filter(domain %in% pop$domain) # filter out areas not present in population dataset
 
 ```
 
@@ -280,32 +275,70 @@ After a few steps, we now have all necessary information to produce our direct e
 ``` {r direct}
 
 dir <- direct(y       = ess$trstplc,
-              dom     = ess$domain,
+              dom     = ess$area,
               sweight = ess$weight,
               domsize = pop[,2:3],
-              replace = FALSE)
-
-
-dir <- direct(y       = ess$trstplc,
-              dom     = ess$domain,
-              sweight = ess$weight,
-              domsize = pop[,1:3],
               replace = FALSE)
 
 ```
 
 
+### Exploring direct estimates
+
+Once we have produced our direct estimates of trust in the police, we can see how these look like by using some functions introduced above.
+
+``` {r summary dir}
+
+summary(dir$Direct) # summary statistics of direct estimates
+
+# produce boxplot of coefficients of variation
+ggplot(dir, aes(x=Domain, y=CV)) + 
+  geom_boxplot() +
+  ggtitle("Coefficient of Variation of direct estimates")
+
+```
+
+As you can see in the boxplot, the estimates of the majority of regions have a Coefficient of Variation smaller than 20%, which is a very good indicator of reliability of these estimates; but we also have a few regions with Coefficients of Variation larger than 25%. We can improve the accuracy of these estimates by using model-based small area estimation models.
+
+For now, we can merge our direct estimates into the dataset of area-level information by using the `left_join()` function from `dplyr.
+
+``` {r copy dir into pop}
+
+pop <- pop %>%
+  left_join(dir, by = c("area" = "Domain"))
 
 
+```
 
 
-data usually require a few data wrangling steps before being ready to be used for analysis. 
+## Downloading area-level covariates from Eurostat
+
+In order to fit area-level models of trust in police and produce area-level estimates, we will need area-level covariates that are associated with our variable of interest. ADD SOME LITERATURE ON COVARIATES!!!
+
+We can download various area-level covariates from Eurostat using the `eurostat` package [@lahti2020], which has been created by facilitate downloading data from Eurostat into `R`. Eurostat is a very large data repository that publishes large datasets of social, econonomic and demographic information for European countries and regions. We can use the `search_eurostat()` function to search predefined key words associated with variables of interest for our study. The function will return a list of all datasets including our keywords, and can then explore which of them are more suitable for our study. For example, we may want to know if education levels and crime rates are somehow associated with the regional levels of trust in the police, and thus we can search Eurostat datasets that include the words *"education"* and *"offender"*. I have done this search and found various variables of interest, but you can also try this at home and probably you will also find variables of interest for our models.
+
+```{r find covariates}
+
+library(eurostat)
+eurostat_edu   <- search_eurostat("education") # search datasets about education
+eurostat_crime <- search_eurostat("offender")  # search datasets about crime
+
+```
+
+Once we know the codes of the datasets we are interested to do, we can use the `get_eurostat()` function to import these into our `R` environment. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 in each NUTS-2 that have a higher education degree. We can download this dataset and see how it looks like:
+
+```{r get higher edu}
+
+he <- get_eurostat(id = "edat_lfs_9918")
+
+```
+
+If we open this file (using the `View()` function), we can see that it is includes information for many indicators, years, age groups, spatial scales and divided by sex. This is likely to be the case in all datasets imported from Eurostat, which means that we will need to spend some time wrangling these data to make sure we can attach these to our area-level direct estimates to estimate the area-level models needed to produce model-based estimates. For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. We can load this dataset into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website.
+
+
 
 and we will use the `eurostat` package (loaded above) to download this data from Eurostat. The `demo_r_d2jan` dataset of Eurostat includes this type of information. We can use the `get_eurostat()` function to download this data into `R`. Then we will `filter()` out all that information that we are not interested to use.
 
-### Exploring direct estimates
-
-## Downloading area-level covariates from Eurostat
 
 ## Fitting area-level models and predicting synthetic estimates
 
