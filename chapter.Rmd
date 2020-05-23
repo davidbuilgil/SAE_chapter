@@ -185,7 +185,7 @@ In order to convert the spatial information provided by all countries into NUTS-
 
 library(RCurl)
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/NUTS_lookup.csv")
+URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/NUTS_lookup.csv")
 
 lookup <- read.csv(text = URL)
 
@@ -224,7 +224,7 @@ The Horvitz-Thompson estimator takes into account the population size in each ar
 
 ``` {r read lookup}
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/population.csv")
+URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/population.csv")
 
 pop <- read.csv(text = URL)
 
@@ -247,6 +247,7 @@ pop <- pop %>%
 select from one another
 
 ``` {r select areas}
+
 ess <- ess %>%
   filter(domain %in% pop$domain) # filter out areas not present in population dataset
 
@@ -307,11 +308,10 @@ For now, we can merge our direct estimates into the dataset of area-level inform
 pop <- pop %>%
   left_join(dir, by = c("area" = "Domain"))
 
-
 ```
 
 
-## Downloading area-level covariates from Eurostat
+## Downloading area-level covariates
 
 In order to fit area-level models of trust in police and produce area-level estimates, we will need area-level covariates that are associated with our variable of interest. ADD SOME LITERATURE ON COVARIATES!!!
 
@@ -340,33 +340,73 @@ If we open this file (using the `View()` function), we can see that it is includ
 
 ``` {r read lookup}
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/covs.csv")
+URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs.csv")
 
 covs <- read.csv(text = URL)
 
-
+pop <- pop %>%
+  left_join(covs, by = "domain") # merge covariates with direct estimates
 
 ```
 
-
+rate crimes * 10000
 
 Once all our covariates are clean and ready to use, we can briefly explore them using the `dplyr` package. For instance, we may want to know the number of missing values in each covariate:
 	
 ``` {r count nas}
 
 pop %>%
-  dplyr::select(he_p, burg, homi, robb, theftmot, gdp, unem, medage, fem, public, pov_risk, povexc_risk) %>%
+  dplyr::select(fem_p_16   ,netmig_r_16, gdp_eurhab_16, loun_p_act_16, unra1524_16,
+         unraall_16, hcide_r_10 , robb_r_10    , burg_r_10 , vthft_r_10   , he_p_16,
+         medage_16) %>%
   summarise_all(funs(sum(is.na(.))))
 
 ```
 
 
+Multiple Imputation using Bootstrap and PMM
+
+``` {r imput Hmisc}
+
+library(Hmisc)
+
+fun_imput <- aregImpute(~ fem_p_16 + netmig_r_16 + gdp_eurhab_16 + he_p_16 + loun_p_act_16 + popdens_16 +
+                  unraall_16 + hcide_r_10 +robb_r_10 + burg_r_10 + vthft_r_10 + unra1524_16 +
+                  medage_16, 
+                  data = pop, n.impute = 10)
+
+fun_imput$rsq
+
+```
 
 
-and we will use the `eurostat` package (loaded above) to download this data from Eurostat. The `demo_r_d2jan` dataset of Eurostat includes this type of information. We can use the `get_eurostat()` function to download this data into `R`. Then we will `filter()` out all that information that we are not interested to use.
+``` {r merge imput}
+  
+imputed <- as.data.frame(impute.transcan(fun_imput, imputation=1, rhsImp="mean", data = pop, list.out=T))
 
+pop2 <- pop %>%
+  dplyr::select(domain, area, pop2016, SampSize, Direct, SD, CV) %>%
+  cbind(imputed)
+
+```
 
 ## Fitting area-level models and predicting synthetic estimates
+
+
+``` {r fit model}
+
+model <- lm(Direct ~  fem_p_16 + gdp_eurhab_16 + loun_p_act_16 + hcide_r_10+
+              robb_r_10 + burg_r_10 + vthft_r_10 + medage_16 + he_p_16, data = pop2 )
+
+
+
+model <- lm(Direct ~  fem_p_16 + gdp_eurhab_16 +
+              robb_r_10 + burg_r_10 +  medage_16 + he_p_16, data = pop2 )
+
+summary(model)
+
+```
+
 
 ## Producing EBLUP estimates
 
