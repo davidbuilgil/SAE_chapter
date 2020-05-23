@@ -340,9 +340,11 @@ If we open this file (using the `View()` function), we can see that it is includ
 
 ``` {r read lookup}
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/population.csv")
+URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/covs.csv")
 
 covs <- read.csv(text = URL)
+
+
 
 ```
 
