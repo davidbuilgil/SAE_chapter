@@ -133,7 +133,7 @@ ggplot(data = trust_poli, aes(x = trstplc, y = prop)) + # set variables of inter
 
 We see that few respondents have a low trust in the police, whereas most European citizens seem to trust their police forces quite a lot. This plot, nevertheless, may hide internal heterogeneity between European regions and countries. Based on this bar graph alone, we do not have enough information to be able to know if residents in all participant countries have the similar levels of trust in the police, or whether those respondents with very low or very high confidence in the police concentrate in some countries but not others. We will use small area estimation to produce estimates of trust in the police across European regions.
 
-Since we are particularly interested in analyzing which regions in Europe have more and less trust in police services, and not only what is the level of trust in each area, we will produce regional estimates of the proportion of citizens who have a level of trust above the average in Europe. In other words, our estimates will show a value between 0 and 1 representing which proportion of residents have more trust in the police than the average of European citizens. For instance, a value of 0.6 in a given region would indicate that 60 percent of persons residing in this region have more trust in the police than the European average. Thus, we need to recode our variable of interest, and we will use the `mutate()` and `ifelse()` functions from `dplyr` to do so. Those respondents with a score above or equal to the mean will be given a value 1, whereas others will be assigned a value of 0. This will facilitate the interpretation of our results, but future research can explore producing estimates from the original 0-to-10 Likert scale.
+Since we are particularly interested in analyzing which regions in Europe have more and less trust in police services, and not only what is the level of trust in each area, we will produce regional estimates of the proportion of citizens who have a level of trust above the average in Europe. In other words, our estimates will show a value between 0 and 1 representing which proportion of residents have more trust in the police than the average of European citizens. For instance, a value of 0.6 in a given region would indicate that 60 percent of its residents have more trust in the police than the European average. Thus, we need to recode our variable of interest, and we will use the `mutate()` and `ifelse()` functions from `dplyr` to do so. Those respondents with a score above or equal to the mean will be given a value 1, whereas others will be assigned a value of 0. This will facilitate the interpretation of our results, but future research can explore producing estimates from the original 0-to-10 Likert scale. We will also delete all those respondents who did not answer this question (i.e., *NA*s).
 
 ``` {r recode trustpoli}
 
@@ -244,26 +244,18 @@ pop <- pop %>%
 
 
 
-select from one another
-
-``` {r select areas}
-
-ess <- ess %>%
-  filter(domain %in% pop$domain) # filter out areas not present in population dataset
-
-```
-
-
 
 Now we have almost all information necessary to produce our direct estimates: the variable of interest (variable `trstplc` in the `ess` dataset), the area population size (`pop2014` in `pop` dataset), and spatial information that matches in both datasets. Nevertheless, as introduced above, the Horvitz-Thompson estimator also requires the use of survey weights that adjust our sample to the population size. Given that the weights published by ESS are not designed to let respondents represent a specific number of citizens, but instead they were computed to adjust the sample to the population characteristics, we will need to recalibrate the ESS weights to the population sizes per region. We can do this by running the following lines of code:
 
 ``` {r compute weight}
 
 ess_w_area <- ess %>%
+  filter(domain %in% pop$domain) %>%        # filter out areas not present in population dataset
   group_by(domain) %>%                      # create groups by region
   summarise(w_sum = sum(pspwght * pweight)) # sum weights per region
 
 ess <- ess %>%
+  filter(domain %in% pop$domain) %>%          # filter out areas not present in population dataset
   left_join(ess_w_area, by = "domain") %>%    # merge sum of weights with ESS units 
   left_join(pop, by = "domain") %>%           # merge region population sizes
   mutate(weight = pspwght * pweight,          # compute weights for cross-national analysis
@@ -287,6 +279,8 @@ dir <- direct(y       = ess$trstplc,
 ### Exploring direct estimates
 
 Once we have produced our direct estimates of trust in the police, we can see how these look like by using some functions introduced above.
+
+SLIT THIS IN TWO:
 
 ``` {r summary dir}
 
@@ -340,7 +334,7 @@ If we open this file (using the `View()` function), we can see that it is includ
 
 ``` {r read lookup}
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs.csv")
+URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs_short.csv")
 
 covs <- read.csv(text = URL)
 
@@ -356,9 +350,7 @@ Once all our covariates are clean and ready to use, we can briefly explore them 
 ``` {r count nas}
 
 pop %>%
-  dplyr::select(fem_p_16   ,netmig_r_16, gdp_eurhab_16, loun_p_act_16, unra1524_16,
-         unraall_16, hcide_r_10 , robb_r_10    , burg_r_10 , vthft_r_10   , he_p_16,
-         medage_16) %>%
+  dplyr::select(fem_p_16, gdp_eurhab_16, robb_r_10, burg_r_10, he_p_16, medage_16) %>%
   summarise_all(funs(sum(is.na(.))))
 
 ```
@@ -366,25 +358,23 @@ pop %>%
 
 Multiple Imputation using Bootstrap and PMM
 
-``` {r imput Hmisc}
+``` {r imput Hmisc, results="hide"}
 
 library(Hmisc)
 
-fun_imput <- aregImpute(~ fem_p_16 + netmig_r_16 + gdp_eurhab_16 + he_p_16 + loun_p_act_16 + popdens_16 +
-                  unraall_16 + hcide_r_10 +robb_r_10 + burg_r_10 + vthft_r_10 + unra1524_16 +
-                  medage_16, 
+fun_imput <- aregImpute(~ fem_p_16 + gdp_eurhab_16 + robb_r_10 + burg_r_10 + he_p_16 + medage_16, 
                   data = pop, n.impute = 10)
-
-fun_imput$rsq
 
 ```
 
 
-``` {r merge imput}
+``` {r merge imput, results="hide"}
   
-imputed <- as.data.frame(impute.transcan(fun_imput, imputation=1, rhsImp="mean", data = pop, list.out=T))
+imputed <- as.data.frame(impute.transcan(fun_imput, imputation = 1, 
+                                         rhsImp = "mean", data = pop, 
+                                         list.out = T))
 
-pop2 <- pop %>%
+pop <- pop %>%
   dplyr::select(domain, area, pop2016, SampSize, Direct, SD, CV) %>%
   cbind(imputed)
 
@@ -392,18 +382,33 @@ pop2 <- pop %>%
 
 ## Fitting area-level models and predicting synthetic estimates
 
+And we will also substract all independent variables from the mean and divide these by two standard deviations, as suggested by @gelman2008, which will allow us to obtain standardised coefficients not affected by the dimensions of each variable:
+
 
 ``` {r fit model}
 
-model <- lm(Direct ~  fem_p_16 + gdp_eurhab_16 + loun_p_act_16 + hcide_r_10+
-              robb_r_10 + burg_r_10 + vthft_r_10 + medage_16 + he_p_16, data = pop2 )
+model <- lm(Direct ~  fem_p_16  + gdp_eurhab_16 + robb_r_10 + 
+                      burg_r_10 +  medage_16    + he_p_16, 
+            data = pop)
+
+summary(model)$r.squared
+
+```
 
 
+``` {r model output, echo = FALSE}
 
-model <- lm(Direct ~  fem_p_16 + gdp_eurhab_16 +
-              robb_r_10 + burg_r_10 +  medage_16 + he_p_16, data = pop2 )
+library(papeR)
 
-summary(model)
+model.sc <- lm(scale(Direct) ~  scale(fem_p_16)  + scale(gdp_eurhab_16) + scale(robb_r_10) + 
+                                scale(burg_r_10) +  scale(medage_16)    + scale(he_p_16), 
+            data = pop)
+
+names(model.sc$coefficients) <- c('(Intercept)' , 'Proportion females', 'GDP per person (€)', 
+                                  'Robbery rate', 'Burglary rate'     , 'Median age',
+                                  'Proportion HE')
+
+xtable(prettify(summary(model.sc)), caption = "Area-level model of trust in the police (standadized coefficients)")
 
 ```
 
