@@ -320,6 +320,7 @@ We can download various area-level covariates from Eurostat using the `eurostat`
 ```{r find covariates}
 
 library(eurostat)
+
 eurostat_edu   <- search_eurostat("education") # search datasets about education
 eurostat_crime <- search_eurostat("offender")  # search datasets about crime
 
@@ -327,13 +328,36 @@ eurostat_crime <- search_eurostat("offender")  # search datasets about crime
 
 Once we know the codes of the datasets we are interested to do, we can use the `get_eurostat()` function to import these into our `R` environment. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 in each NUTS-2 that have a higher education degree. We can download this dataset and see how it looks like:
 
-```{r get higher edu}
+```{r get higher edu, eval=FALSE}
 
 he <- get_eurostat(id = "edat_lfs_9918")
 
 ```
 
-If we open this file (using the `View()` function), we can see that it is includes information for many indicators, years, age groups, spatial scales and divided by sex. This is likely to be the case in all datasets imported from Eurostat, which means that we will need to spend some time wrangling these data to make sure we can attach these to our area-level direct estimates to estimate the area-level models needed to produce model-based estimates. For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. We can load this dataset into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website.
+If we open this file (using the `View()` function), we can see that it is includes information about many indicators, years, age groups, spatial scales and divided by sex. All datasets imported from Eurostat provide information abou many different measures, which means that we will need to spend some time wrangling and subsetting these data to make sure we can attach these to our area-level direct estimates to estimate the area-level models needed to produce model-based estimates. For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. We can load this dataset into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website. Moreover, the ESS website also publishes interesting area-level covariates at the different scales: [https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html).
+
+
+
+``` {r read lookup}
+
+URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/population.csv")
+
+covs <- read.csv(text = URL)
+
+```
+
+
+
+Once all our covariates are clean and ready to use, we can briefly explore them using the `dplyr` package. For instance, we may want to know the number of missing values in each covariate:
+	
+``` {r count nas}
+
+pop %>%
+  dplyr::select(he_p, burg, homi, robb, theftmot, gdp, unem, medage, fem, public, pov_risk, povexc_risk) %>%
+  summarise_all(funs(sum(is.na(.))))
+
+```
+
 
 
 
