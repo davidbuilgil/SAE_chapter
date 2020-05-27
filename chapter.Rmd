@@ -93,7 +93,9 @@ Now we have loaded the ESS data and we can begin exploring and analyzing it. If 
 The ESS includes various questions that may be of interest for criminologists and crime analysts. For examples, some questions that we may be interested to analyze are:
 
 **1.-** *"Have you or a member of your household been the victim of a burglary or assault in the last 5 years?"*
+
 **2.-** *"How safe do you – or would you – feel walking alone in this area after dark?"*
+
 **3.-** *"Using this card, please tell me on a score of 0-10 how much you personally trust each of the institutions I read out [...]"; "[...] the legal system" and "[...] the police".*
 
 These measures have previously been used to study victimization, perceived safety, trust in the police, and trust in the legal system (e.g., REFS), but there are many other questions that may also be of interest for criminologists (e.g., racism, discrimination against immigrants, homophobia). We can read the whole ESS questionnaire here: [https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf](https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf).
@@ -600,7 +602,26 @@ We start by producing a scatter plot of direct estimates against the EBLUP estim
 
 ``` {r plot dir vs eblup}
 
-plot(pop$Direct, pop$eblup) # plot direct estimates against EBLUPs
+library(gridExtra)
+
+# plot direct estimates against EBLUPs
+dir_vs_EBLUP <- ggplot(pop, aes(x = Direct, y = eblup)) + 
+                geom_point() +
+                ggtitle("Direct versus EBLUP estimates") +
+                theme(aspect.ratio = 1)
+
+# plot direct estimates against synthetic estimates
+dir_vs_synth <- ggplot(pop, aes(x=Direct, y=synthetic)) + 
+                geom_point() +
+                ggtitle("Direct versus synthetic estimates") +
+                theme(aspect.ratio = 1)
+
+grid.arrange(dir_vs_EBLUP, dir_vs_synth, ncol=2)
+
+```
+
+``` {r corr eblup dir}
+
 cor.test(pop$Direct, pop$eblup, method = "spearman") # Spearman rank correlation
 
 ```
@@ -609,9 +630,8 @@ The scatter plot and the Spearman's rank correlation coefficient show a high lin
 
 We will do the same with the synthetic estimates produced directly from the model, just to see the extent to which model-based synthetic estimates may be biased by the model
 
-``` {r plot synth}
+``` {r corr synth dir}
 
-plot(pop$Direct, pop$synthetic) # plot synthetic estimates against direct estimtaes
 cor.test(pop$Direct, pop$synthetic, method = "spearman") # Spearman rank correlation
 
 ```
