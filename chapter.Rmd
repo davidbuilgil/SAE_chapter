@@ -18,7 +18,6 @@ csl: apa.csl
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(ggplot2)
 library(sf)
-library(tidyr)
 library(dplyr)
 ```
 
@@ -185,9 +184,9 @@ In order to convert the spatial information provided by all countries into NUTS-
 
 library(RCurl)
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/NUTS_lookup.csv")
+url_lookup <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/NUTS_lookup.csv")
 
-lookup <- read.csv(text = URL)
+lookup <- read.csv(text = url_lookup)
 
 ```
 
@@ -224,9 +223,9 @@ The Horvitz-Thompson estimator takes into account the population size in each ar
 
 ``` {r read lookup}
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/population.csv")
+url_pop <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/population.csv")
 
-pop <- read.csv(text = URL)
+pop <- read.csv(text = url_pop)
 
 ```
 
@@ -280,11 +279,15 @@ dir <- direct(y       = ess$trstplc,
 
 Once we have produced our direct estimates of trust in the police, we can see how these look like by using some functions introduced above.
 
-SLIT THIS IN TWO:
 
 ``` {r summary dir}
 
 summary(dir$Direct) # summary statistics of direct estimates
+
+```
+
+
+``` {r dir cv boxplot}
 
 # produce boxplot of coefficients of variation
 ggplot(dir, aes(x=Domain, y=CV)) + 
@@ -334,9 +337,9 @@ If we open this file (using the `View()` function), we can see that it is includ
 
 ``` {r read lookup}
 
-URL <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs_short.csv")
+url_covs <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs_short.csv")
 
-covs <- read.csv(text = URL)
+covs <- read.csv(text = url_covs)
 
 pop <- pop %>%
   left_join(covs, by = "domain") # merge covariates with direct estimates
@@ -356,9 +359,11 @@ pop %>%
 ```
 
 
+### Impute missing values
+
 Multiple Imputation using Bootstrap and PMM
 
-``` {r imput Hmisc, results="hide"}
+``` {r imput model, results="hide"}
 
 library(Hmisc)
 
@@ -368,11 +373,16 @@ fun_imput <- aregImpute(~ fem_p_16 + gdp_eurhab_16 + robb_r_10 + burg_r_10 + he_
 ```
 
 
-``` {r merge imput, results="hide"}
+``` {r imput, results="hide"}
   
 imputed <- as.data.frame(impute.transcan(fun_imput, imputation = 1, 
                                          rhsImp = "mean", data = pop, 
                                          list.out = T))
+```
+
+
+
+``` {r copy imput}
 
 pop <- pop %>%
   dplyr::select(domain, area, pop2016, SampSize, Direct, SD, CV) %>%
@@ -412,12 +422,92 @@ xtable(prettify(summary(model.sc)), caption = "Area-level model of trust in the 
 
 ```
 
+Check r squared
+
+`summary(model)$r.squared` 
+
+`r round(summary(model)$r.squared, 2)`
+
+
 
 ## Producing EBLUP estimates
+
+Using the same variables, we also fit our EBLUP (i.e., Empirical Best Linear Unbiased Predictor) model to produce model-based small area estimates.
+
+The area-level EBLUP, which is based on the model developed by @fay1979, obtains an optimal combination of direct and regression-based synthetic estimates in each small area. The EBLUP combines both estimates in each area and gives more weight to the direct estimate when its sampling variance is small, while more weight is attached to the synthetic estimate when the direct estimate’s variance is larger. The EBLUP reduces the variance of direct estimates and the risk of bias of synthetic estimates by producing the optimal combination of these in each area.
+
+We use the `eblupFH()` function from `sae` package.
+
+``` {r EBLUP}
+
+eblup <- eblupFH(formula = pop$Direct    ~ pop$fem_p_16  + pop$gdp_eurhab_16 + 
+                           pop$robb_r_10 + pop$burg_r_10 + pop$medage_16 + 
+                           pop$he_p_16,
+                  vardir  = pop$SD^2,
+                  method  = "REML")
+
+```
+
+``` {r print eblup, results="hide"}
+
+eblup$fit # print model results
+
+```
+
+
+We can get the EBLUP model results by using the `summary()` function.
+
+``` {r EBLUP ests}
+
+summary(eblup$eblup) # obtain model results
+
+```
+
+And finally we can merge the model-based small area estimates into our main dataset of area-level information. We use the `cbind()` function to merge the new columns.
+	
+``` {r merge eblups}
+
+pop <- pop %>%
+  cbind(eblup$eblup) %>% # merge data into main dataset
+  rename(eblup = "eblup$eblup") # change name of column
+
+```
+	
 
 ### Mapping the confidence in police work in Europe
 
 ## Computing the Mean Squared Error of EBLUP estimates
+
+In SAE, each small area estimate needs to be accompanied by its estimated measure of uncertainty, which is frequently defined by the Mean Squared Error (MSE) or the Relative Root Mean Squared Error (RRMSE). The MSE is a measure of the estimate’s reliability and refers to the averaged squared error of the estimate. Hence, it represents the squared difference between the estimated value and what is measured. The MSE is always non-negative, and values closer to zero indicate a higher reliability of the small area estimate. The MSE accounts for both the variance of the estimates (i.e., spread of estimates from one sample to another) and their bias (i.e., distance between the averaged estimated value and the true value). The RRMSE is obtained by taking the square root of the MSE (i.e. the Root Mean Squared Error, RMSE) and dividing it by the corresponding small area estimate. The RRMSE is usually presented as a percentage. This allows for direct comparisons between the measures of reliability of estimates obtained from direct and indirect model-based SAE techniques.
+
+The RRMSE can be used to examine which SAE method produces the most reliable estimates and which estimates suffer from inadequate reliability. SAE methods may produce reliable estimates in some areas and unreliable estimates in others. SAE standards tend to establish that “estimates with RRMSEs greater than 25% should be used with caution and estimates with RRMSEs greater than 50% are considered too unreliable for general use” [@commonwealth2015, p. 13].
+
+The measure of uncertainty of direct estimates is defined by their Coefficient of Variation (CV), which is the corresponding measure to the RRMSE for unbiased estimators [@rao2015].
+
+RRMSEs of model-based estimates can be estimated following analytical and bootstrap procedures. In this exemplar study we will produce the RRMSE of our estimates by following an analytical approach: we use the `mseFH()` function from `sae`. 
+
+``` {r mse eblup}
+
+eblup_mse <- mseFH(formula = pop$Direct    ~ pop$fem_p_16  + pop$gdp_eurhab_16 + 
+                         pop$robb_r_10 + pop$burg_r_10 + pop$medage_16 + 
+                         pop$he_p_16,
+                  vardir  = pop$SD^2,
+                  method  = "REML")
+
+```
+
+And we will also merge this information into our main dataset:
+
+``` {r rrmse}
+
+pop <- pop %>%
+  cbind(mseFH$mse) %>% # merge data
+  rename(mse = "mseFH$mse") %>% # change name of column
+  mutate(rrmse = (sqrt(mse) / eblup) * 100) # compute RRMSE from MSE
+
+
+```
+	
 
 ### Plotting the Mean Squared Error of EBLUP estimates
 
