@@ -314,7 +314,7 @@ In order to fit area-level models of trust in police and produce area-level esti
 
 We can download various area-level covariates from Eurostat using the `eurostat` package [@lahti2020], which has been created by facilitate downloading data from Eurostat into `R`. Eurostat is a very large data repository that publishes large datasets of social, econonomic and demographic information for European countries and regions. We can use the `search_eurostat()` function to search predefined key words associated with variables of interest for our study. The function will return a list of all datasets including our keywords, and can then explore which of them are more suitable for our study. For example, we may want to know if education levels and crime rates are somehow associated with the regional levels of trust in the police, and thus we can search Eurostat datasets that include the words *"education"* and *"offender"*. I have done this search and found various variables of interest, but you can also try this at home and probably you will also find variables of interest for our models.
 
-```{r find covariates}
+```{r find covariates, eval=FALSE}
 
 library(eurostat)
 
@@ -468,7 +468,7 @@ eblup <- eblupFH(formula = pop$Direct    ~ pop$fem_p_16  + pop$gdp_eurhab_16 +
 
 ```
 
-``` {r print eblup, results="hide"}
+``` {r print eblup, eval=FALSE}
 
 eblup$fit # print model results
 
@@ -551,8 +551,8 @@ RRMSEs of model-based estimates can be estimated following analytical and bootst
 eblup_mse <- mseFH(formula = pop$Direct    ~ pop$fem_p_16  + pop$gdp_eurhab_16 + 
                          pop$robb_r_10 + pop$burg_r_10 + pop$medage_16 + 
                          pop$he_p_16,
-                  vardir  = pop$SD^2,
-                  method  = "REML")
+                   vardir  = pop$SD^2,
+                   method  = "REML")
 
 ```
 
