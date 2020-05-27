@@ -24,6 +24,7 @@ library(dplyr)
 
 ```{r Rmarkdown_setup, include=FALSE}
 options(tinytex.verbose = TRUE)
+options(xtable.comment = FALSE)
 ```
 
 **Full reference:** Buil-Gil, D. (2020). Small area estimation for crime analysis. In E. Groff & C. Haberman (Eds.), *The study of crime and place: A methods handbook*. Temple University Press.
@@ -37,9 +38,9 @@ options(tinytex.verbose = TRUE)
 
 # Foundations of small area estimation
 
-# Small area estimation applications for crime analysis
+## Small area estimation applications for crime analysis
 
-# Producing small area estimates of confidence in the police: Step-by-step example in `R`
+# Small area estimation of trust in the police: Step-by-step example in `R`
 
 ## European Social Survey
 
@@ -96,7 +97,7 @@ The ESS includes various questions that may be of interest for criminologists an
 
 **2.-** *"How safe do you – or would you – feel walking alone in this area after dark?"*
 
-**3.-** *"Using this card, please tell me on a score of 0-10 how much you personally trust each of the institutions I read out [...]"; "[...] the legal system" and "[...] the police".*
+**3.-** *"Using this card, please tell me on a score of 0-10 how much you personally trust each of the institutions I read out [...]": "[...] the legal system" and "[...] the police".*
 
 These measures have previously been used to study victimization, perceived safety, trust in the police, and trust in the legal system (e.g., REFS), but there are many other questions that may also be of interest for criminologists (e.g., racism, discrimination against immigrants, homophobia). We can read the whole ESS questionnaire here: [https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf](https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf).
 
@@ -341,6 +342,10 @@ If we open this file (using the `View()` function), we can see that it is includ
 
 
 
+-> do multiple imputation in another file and download imputed values!!!!
+
+
+
 ``` {r read covariates}
 
 url_covs <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs_short.csv")
@@ -418,7 +423,7 @@ model <- lm(Direct ~  fem_p_16  + gdp_eurhab_16 + robb_r_10 +
 
 ``` {r model output, echo = FALSE}
 
-library(papeR)
+library(xtable)
 
 model.sc <- lm(scale(Direct) ~  scale(fem_p_16)  + scale(gdp_eurhab_16) + scale(robb_r_10) + 
                                 scale(burg_r_10) +  scale(medage_16)    + scale(he_p_16), 
@@ -428,9 +433,13 @@ names(model.sc$coefficients) <- c('(Intercept)' , 'Proportion females', 'GDP per
                                   'Robbery rate', 'Burglary rate'     , 'Median age',
                                   'Proportion HE')
 
-xtable(prettify(summary(model.sc)), caption = "Area-level model of trust in the police (standadized coefficients)")
+model_tab <- xtable(summary(model.sc)$coef, digits=c(0, 2, 2, 1, 2), 
+                    caption = "Area-level model of trust in the police (standadized coefficients)")
 
 ```
+
+
+`r model_tab`
 
 Check r squared
 
@@ -482,13 +491,7 @@ eblup$fit # print model results
 ```
 
 
-We can get the EBLUP model results by using the `summary()` function.
-
-``` {r EBLUP ests}
-
-summary(eblup$eblup) # obtain model results
-
-```
+We can get the EBLUP model results by using the `summary()` function. describe min, mean and max here
 
 And finally we can merge the model-based small area estimates into our main dataset of area-level information. We use the `cbind()` function to merge the new columns.
 	
@@ -620,21 +623,15 @@ grid.arrange(dir_vs_EBLUP, dir_vs_synth, ncol=2)
 
 ```
 
-``` {r corr eblup dir}
+dir vs eblup
+ρ = `r round(cor.test(pop$Direct, pop$eblup, method = "spearman")$estimate, 2)` (p-value < 0.0001)
 
-cor.test(pop$Direct, pop$eblup, method = "spearman") # Spearman rank correlation
-
-```
+dir vs synth
+ρ = `r round(cor.test(pop$Direct, pop$synthetic, method = "spearman")$estimate, 2)` (p-value < 0.0001)
 
 The scatter plot and the Spearman's rank correlation coefficient show a high linear association between our model-based estimates and the unbiased direct estimates, which shows that our model does not bias our final small area estimates.
 
 We will do the same with the synthetic estimates produced directly from the model, just to see the extent to which model-based synthetic estimates may be biased by the model
-
-``` {r corr synth dir}
-
-cor.test(pop$Direct, pop$synthetic, method = "spearman") # Spearman rank correlation
-
-```
 
 The scatter plot shows that many estimates are likely to be affected by bias arising from the model.
 
