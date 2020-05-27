@@ -1,15 +1,15 @@
 ---
 title: "Small Area Estimation for Crime Analysis"
-abstract: "Victimization surveys provide essential information to study crime and emotions about crime, but their sampling designs only allow analyzing criminological variables at large spatial scales. Crime surveys are designed to allow producing precise direct estimates (i.e., weighted means and totals) for very large areas, but the size of samples in small areas is generally small and direct estimates produced for small geographies will generally be imprecise. Refined model-based small area estimation techniques may be used to increase the reliability of small area estimates produced from victimization surveys. Small area estimation is the term used to describe those methods designed to produce reliable estimates of parameters of interest (and associated measures of reliability) for areas for which only small or zero sample sizes are available. In 2008, the US Panel to Review the Programs of the Bureau of Justice Statistics recommended the use of small area estimation to produce subnational estimates of crime. Since then, small area estimation has been applied to study many variables of interest in criminology. This chapter introduces theory and a step-by-step exemplar study in `R` to show the utility of small area estimation to analyze crime and place. Model-based regional estimates of confidence in policing are produced from European Social Survey data. 
+abstract: "Victimization surveys provide essential information to study crime and emotions about crime, but their sampling designs only allow analyzing criminological variables at large spatial scales. Crime surveys are designed to allow producing precise direct estimates (i.e., weighted means and totals) for very large areas, but the size of samples in small areas is generally small and direct estimates produced for small geographies will generally be imprecise. Refined model-based small area estimation techniques may be used to increase the reliability of small area estimates produced from victimization surveys. Small area estimation is the term used to describe those  methods designed to produce reliable estimates of parameters of interest (and associated  measures of reliability) for areas for which only small or zero sample sizes are  available. In 2008, the US Panel to Review the Programs of the Bureau of Justice  Statistics recommended the use of small area estimation to produce subnational estimates  of crime. Since then, small area estimation has been applied to study many variables  of interest in criminology. This chapter introduces theory and a step-by-step exemplar  study in `R` to show the utility of small area estimation to analyze crime and place.  Model-based regional estimates of confidence in policing are produced from European Social Survey data. 
   \\par
   \\textbf{Keywords:} Confidence in policing, European Social Survey, crime mapping, open data, GIS"
 author: |
   | David Buil-Gil
   | Department of Criminology, University of Manchester, UK
-date: "19/05/2020"
+date: "25/05/2020"
 output:
-  pdf_document: default
   word_document: default
+  pdf_document: default
 bibliography: refs.bib
 csl: apa.csl
 ---

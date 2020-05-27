@@ -789,7 +789,7 @@ the dimensions of each variable:
 
 \begin{verbatim}
 ## % latex table generated in R 3.6.3 by xtable 1.8-4 package
-## % Wed May 27 16:08:10 2020
+## % Wed May 27 16:26:17 2020
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{rlrrrrrll}
@@ -797,12 +797,12 @@ the dimensions of each variable:
 ##  &   & Estimate & CI (lower) & CI (upper) & Std. Error & t value & Pr($>$$|$t$|$) &     \\ 
 ##   \hline
 ## 1 & (Intercept) & 0.00 & -0.12 & 0.12 & 0.06 & 0.00 & 1 &   \\ 
-##   2 & Proportion females & -0.24 & -0.39 & -0.09 & 0.08 & -3.16 & 0.002 & ** \\ 
-##   3 & GDP per person (€) & 0.30 & 0.13 & 0.47 & 0.09 & 3.41 & 0.001 & *** \\ 
-##   4 & Robbery rate & -0.09 & -0.24 & 0.05 & 0.07 & -1.24 & 0.215 &   \\ 
-##   5 & Burglary rate & -0.06 & -0.19 & 0.08 & 0.07 & -0.85 & 0.395 &   \\ 
-##   6 & Median age & 0.18 & 0.04 & 0.32 & 0.07 & 2.50 & 0.013 & * \\ 
-##   7 & Proportion HE & 0.26 & 0.10 & 0.42 & 0.08 & 3.19 & 0.002 & ** \\ 
+##   2 & Proportion females & -0.29 & -0.43 & -0.14 & 0.07 & -3.91 & $<$0.001 & *** \\ 
+##   3 & GDP per person (€) & 0.26 & 0.09 & 0.43 & 0.08 & 3.10 & 0.002 & ** \\ 
+##   4 & Robbery rate & -0.03 & -0.18 & 0.11 & 0.07 & -0.48 & 0.632 &   \\ 
+##   5 & Burglary rate & -0.02 & -0.16 & 0.12 & 0.07 & -0.29 & 0.771 &   \\ 
+##   6 & Median age & 0.20 & 0.07 & 0.34 & 0.07 & 2.94 & 0.004 & ** \\ 
+##   7 & Proportion HE & 0.27 & 0.11 & 0.42 & 0.08 & 3.35 & 0.001 & *** \\ 
 ##    \hline
 ## \end{tabular}
 ## \caption{Area-level model of trust in the police (standadized coefficients)} 
@@ -894,12 +894,12 @@ function.
 
 \begin{verbatim}
 ##        V1        
-##  Min.   :0.3103  
-##  1st Qu.:0.5088  
-##  Median :0.5860  
-##  Mean   :0.5797  
-##  3rd Qu.:0.6525  
-##  Max.   :0.8641
+##  Min.   :0.2881  
+##  1st Qu.:0.5100  
+##  Median :0.5868  
+##  Mean   :0.5794  
+##  3rd Qu.:0.6512  
+##  Max.   :0.8592
 \end{verbatim}
 
 And finally we can merge the model-based small area estimates into our
@@ -1005,8 +1005,8 @@ RRMSE of our estimates by following an analytical approach: we use the
 \NormalTok{eblup_mse <-}\StringTok{ }\KeywordTok{mseFH}\NormalTok{(}\DataTypeTok{formula =}\NormalTok{ pop}\OperatorTok{$}\NormalTok{Direct    }\OperatorTok{~}\StringTok{ }\NormalTok{pop}\OperatorTok{$}\NormalTok{fem_p_}\DecValTok{16}  \OperatorTok{+}\StringTok{ }\NormalTok{pop}\OperatorTok{$}\NormalTok{gdp_eurhab_}\DecValTok{16} \OperatorTok{+}\StringTok{ }
 \StringTok{                         }\NormalTok{pop}\OperatorTok{$}\NormalTok{robb_r_}\DecValTok{10} \OperatorTok{+}\StringTok{ }\NormalTok{pop}\OperatorTok{$}\NormalTok{burg_r_}\DecValTok{10} \OperatorTok{+}\StringTok{ }\NormalTok{pop}\OperatorTok{$}\NormalTok{medage_}\DecValTok{16} \OperatorTok{+}\StringTok{ }
 \StringTok{                         }\NormalTok{pop}\OperatorTok{$}\NormalTok{he_p_}\DecValTok{16}\NormalTok{,}
-                  \DataTypeTok{vardir  =}\NormalTok{ pop}\OperatorTok{$}\NormalTok{SD}\OperatorTok{^}\DecValTok{2}\NormalTok{,}
-                  \DataTypeTok{method  =} \StringTok{"REML"}\NormalTok{)}
+                   \DataTypeTok{vardir  =}\NormalTok{ pop}\OperatorTok{$}\NormalTok{SD}\OperatorTok{^}\DecValTok{2}\NormalTok{,}
+                   \DataTypeTok{method  =} \StringTok{"REML"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1078,11 +1078,11 @@ estimates.
 ##  Spearman's rank correlation rho
 ## 
 ## data:  pop$Direct and pop$eblup
-## S = 69772, p-value < 2.2e-16
+## S = 71108, p-value < 2.2e-16
 ## alternative hypothesis: true rho is not equal to 0
 ## sample estimates:
 ##       rho 
-## 0.9359794
+## 0.9347535
 \end{verbatim}
 
 The scatter plot and the Spearman's rank correlation coefficient show a
@@ -1113,11 +1113,11 @@ estimates may be biased by the model
 ##  Spearman's rank correlation rho
 ## 
 ## data:  pop$Direct and pop$synthetic
-## S = 387438, p-value < 2.2e-16
+## S = 390640, p-value < 2.2e-16
 ## alternative hypothesis: true rho is not equal to 0
 ## sample estimates:
 ##       rho 
-## 0.6444988
+## 0.6415607
 \end{verbatim}
 
 The scatter plot shows that many estimates are likely to be affected by
