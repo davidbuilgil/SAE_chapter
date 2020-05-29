@@ -27,11 +27,10 @@ covs %>%
   summarise_all(funs(sum(is.na(.))))
 
 # Fit multiple imputation model via Bootstrapping and Predictive Mean Matching.
-fun_imput <- aregImpute(~ fem_p_16      + popdens_16     + netmig_r_16 + gdp_eurhab_16 + 
-                          gdp_mil_16    + pps_16         + pps_hab_16  + loun_ths_16   +
-                          un1524_ths_16 + unall_ths_2016 + unra1524_16 + unraall_16    +
-                          hcide_r_10    + robb_r_10      + burg_r_10   + vthft_r_10    +
-                          he_p_16       + medage_16, 
+fun_imput <- aregImpute(~ fem_p_16   + popdens_16  + netmig_r_16 + gdp_eurhab_16 + 
+                          pps_hab_16 + loun_ths_16 + unra1524_16 + unraall_16    +
+                          hcide_r_10 + robb_r_10   + burg_r_10   + vthft_r_10    +
+                          he_p_16    + medage_16, 
                         data = covs, n.impute = 10)
 
 # Check R Squared with which each missing variable could be predicted from the others. 
