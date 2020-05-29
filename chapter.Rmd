@@ -124,7 +124,7 @@ ESS data can be downloaded from their website. But we can also download ESS data
 
 ``` {r install packs, eval = FALSE}
 
-install.packages("essurvey") 
+install.packages("essurvey") # install essurvey package
 
 ```
 
@@ -132,7 +132,7 @@ Once it is installed, we can load the package into our `R` environment using the
 
 ```{r load essurvey}
 
-library(essurvey)
+library(essurvey) # load essurvey package
 
 ```
 
@@ -165,6 +165,8 @@ In this exemplar study we will analyze ESS data about trust in police services, 
 
 ```{r explore trust police}
 
+library(dplyr) # load dplyr package
+
 ess <- ess %>%                          # set dataset to use
   mutate(trstplc = as.numeric(trstplc)) # transform variable to numeric
 
@@ -172,7 +174,7 @@ summary(ess$trstplc) # print summary statistics
 
 ```
 
-We see that the average score of trust in police in Europe is `r round(mean(ess$trstplc, na.rm = T), 2)`, and the median value is `r median(ess$trstplc, na.rm = T)`. We can use the same `summary()` function to analyze the values of trust in other social institutions, such as the legal system (variable `trstlgl`), politicians (`trtplt`), political parties (`trtprt`), the country's parliament (`trstprl`) or the United Nations (`trstun`). On average, Europeans appear to have more trust in the police than in other key political and legal institutions.
+We see that the average score of trust in police in Europe is `r round(mean(ess$trstplc, na.rm = T), 2)`, and the median value is `r median(ess$trstplc, na.rm = T)`. We can use the same `summary()` function to analyze the values of trust in other social institutions, such as the legal system (variable `trstlgl`), politicians (`trtplt`), political parties (`trtprt`), the country's parliament (`trstprl`) or the United Nations (`trstun`). On average, Europeans appear to have more trust in the police than in other key political and legal institutions. We can also see that `r sum(length(which(is.na(ess$trstplc))))` persons did not answer this question.
 
 We can obtain some more detailed information about the citizens' trust in the police by counting the frequency of respondents that chose each score and creating a bar plot to visualize their distribution. We will use functions from the the packages `dplyr` and `ggplot2` [@wickham2020b] for this. More specifically, we use the `group_by()` function from `dplyr` to create groups of respondents based on their score of trust in police, and use the functions `summarize()` and `mutate()` from the same package to save the results in two columns showing the number (`n`) and proportion (`prop`) of respondents in each category. We save this new table in a new dataset called `trust_poli`.
 
@@ -189,6 +191,8 @@ Then, we use the `ggplot()` and `geom_bar()` functions from `ggplot2` to create 
 
 ```{r plot trust police}
 
+library(ggplot2) # load ggplot2 package
+
 theme_set(theme_minimal()) # set white theme for plots
 
 ggplot(data = trust_poli,              # set dataset to use
@@ -200,14 +204,19 @@ ggplot(data = trust_poli,              # set dataset to use
 
 We see that only a few respondents have a low trust in the police, whereas most European citizens appear to trust their police forces quite a lot. This plot, nevertheless, is likely to hide internal heterogeneity between European regions and countries. Based on this bar graph alone, we do not have enough information to be able to know if residents in all participant countries have the similar levels of trust in the police, or whether respondents with very low or very high confidence in the police concentrate in some countries but not others.
 
-In this exemplar study, we are particularly interested in analyzing which regions in Europe have especially low or high levels of trust in the police in comparison to other European countries. Thus, we will estimate the proportion of residents in each region who have a level of trust above the average in Europe. Our final estimates will show a value between 0 and 1 representing which proportion of residents have more trust in the police than the European average. For instance, a value of 0.6 in a given region would indicate that 60 percent of its residents have more trust in the police than the average of all European citizens. Thus, we need to recode our variable of interest, and we will use the `mutate()` and `ifelse()` functions from `dplyr` to do so. Those respondents with a score above or equal to the mean will be given a value 1, whereas others will be assigned a value of 0. This will facilitate the interpretation of our results, but future research can explore producing estimates from the original 0-to-10 Likert scale. We will also delete all those respondents who did not answer this question (i.e., *NA*s).
+
+### Recode measure of trust in the police
+
+In this exemplar study, we are particularly interested in analyzing which regions in Europe have especially low or high levels of trust in the police in comparison to other European countries. One way to do this is by estimating the proportion of residents in each region who have a level of trust above the average in Europe. Our final estimates will show a value between 0 and 1 representing the proportion of residents have more trust in the police than the European average. For instance, a value of 0.6 in a given region would indicate that 60 percent of its residents have more trust in the police than the average of all European citizens. 
+
+Thus, we need to recode our variable of interest. We will use the `mutate()` and `ifelse()` functions from `dplyr` to do so. Those respondents with a score above or equal to the European mean will be given a value `1`, whereas the others will be assigned a value of `0`. This will facilitate the interpretation of our results, but future research can explore producing estimates from the original 0-to-10 Likert scale. We will also delete all those respondents who did not answer this question (i.e., *NA*s).
 
 ``` {r recode trustpoli}
 
-ess <- ess %>%
-  # if trust is above or equal to mean, 1, 0
+ess <- ess %>%           # set dataset to use
+                         # if trust above or equal to mean, assign 1, otherwise 0
   mutate(trstplc = ifelse(trstplc >= mean(trstplc, na.rm = T), 1, 0)) %>%
-  filter(!is.na(trstplc)) # delete NAs
+  filter(!is.na(trstplc))# delete NAs
 
 ```
 
@@ -216,59 +225,64 @@ We can use the `group_by()` and `summarize()` functions seen above to explore ho
 
 ## Exploring spatial data: Coverage and sample sizes
 
-As mentioned above, the ESS sampling design is planned to allow producing reliable direct estimates at the level participant countries, but samples recorded at smaller scales (e.g., regions, cities) may be too small in some areas to allow producing direct estimates of adequate precision. We can check how big ESS sample sizes are in each region (variable `region`) using the functions `filter()`, `group_by()` and `summarize()` from `dplyr` to create a summary table in a new dataframe that we will call `sample_region`. Then, we can use the `summary()` function to print the summary statistics of area sample sizes.
+As mentioned above, the ESS sampling design is planned to allow producing reliable direct estimates at the country level, but samples recorded at smaller scales (e.g., regions, cities) may be too small to allow producing direct estimates of adequate precision in all areas. We can check how big ESS sample sizes are in each region (variable `region`) using the functions `filter()`, `group_by()` and `summarize()` from `dplyr` to create a summary table in a new dataframe that we will call `sample_region`. Then, we can use the `summary()` function to print the summary statistics of area sample sizes.
 
 ```{r sample regions}
 
-sample_region <- ess %>%
+sample_region <- ess %>%      # set dataset to use
   filter(region != 99999) %>% # filter out NAs
-  group_by(region) %>%        # categories based on regions
+  group_by(region) %>%        # categories based on region
   summarize(n = n())          # calculate sample size
 
-summary(sample_region$n)
+summary(sample_region$n) # print summary statistics
 
 ```
 
-The average sample size per region is `r round(mean(sample_region$n), 1)`, which is quite large but may be insufficient to produce reliable direct estimates. Moreover, there are areas with very small sample sizes (the minimum area sample size is `r min(sample_region$n)`), where we cannot simply rely of direct estimation techiques to generate estimates of adequate precision.
+The average sample size per region is `r round(mean(sample_region$n), 1)`, which is quite large but may be insufficient to produce reliable direct estimates in all areas. We can also see that there are areas with very small sample sizes (the minimum area sample size is `r min(sample_region$n)`), where we cannot simply rely of direct estimation techniques to generate small area estimates of adequate precision.
 
-Moreover, we also need to consider that participant countries can decide whether they want to publish recorded data at the level of NUTS-1, NUTS-2, NUTS-3 or smaller scales. NUTS is the acronym of *Nomenclature of Territorial Units for Statistics*, and it refers to the spatial scales used by the European Union and Eurostat (the statistical office of the European Union) for policy making and statistical reporing purposes. NUTS are basically a way to organize European countries in regions and subregions. In England, for instance NUTS-1 are statistical regions, NUTS-2 are counties (and groups of districts in London), and NUTS-3 are generally unitary authorities (some grouped). Whereas some participant countries publish their data at the level of NUTS-2, others decide to report information for NUTS-1 or NUTS-3 areas. We can check which level of aggregation is published by each participant country in the ESS website: [https://www.europeansocialsurvey.org/data/multilevel/guide/essreg.html](https://www.europeansocialsurvey.org/data/multilevel/guide/essreg.html). We can also run the following lines of code and print this information directly in `R`.
+
+### Checking spatial scale reported in each country
+
+We also need to consider that participant countries can decide whether they want to publish their recorded data at the level of NUTS-1, NUTS-2, NUTS-3 or smaller spatial scales. NUTS is the acronym of *'Nomenclature of Territorial Units for Statistics'*, and it refers to spatial scales used by the European Union and Eurostat (the statistical office of the European Union) for policy making and statistical reporting purposes. NUTS are basically a way to organize European countries in regions and subregions. In England, for example, NUTS-1 are statistical regions, NUTS-2 are counties (and groups of districts in London), and NUTS-3 are generally unitary authorities (some grouped). Whereas some participant countries publish their data at the level of NUTS-2, others decide to report information for NUTS-1 or NUTS-3 areas. We can check which level of aggregation is published by each participant country in the ESS website: [https://www.europeansocialsurvey.org/data/multilevel/guide/essreg.html](https://www.europeansocialsurvey.org/data/multilevel/guide/essreg.html). We can also run the following lines of code and print this information directly in `R`.
 
 ```{r geo scale, eval=FALSE}
 
-ess %>%
+ess %>%                        # set dataset to use
   group_by(regunit, cntry) %>% # group by spatial scale and country
   summarize(n = n())           # print sample size per country
 
 ```
 
-We see that many counties publish data at the NUTS-2 level, but others participant countries publish their micro-data for NUTS-1 and NUTS-3 areas. We will aggregate data at the NUTS-2 level and produce estimates of confidence in the police at this scale (with the exception of Germany and the UK, who only publish data for NUTS-1).
+We see that many counties publish data at the NUTS-2 level, but others participant countries publish their micro-data for NUTS-1 and NUTS-3 areas. We will aggregate all data at the NUTS-2 level and produce estimates of confidence in the police at this spatial scale (with the exception of Germany and the UK, who only publish data for NUTS-1).
 
 
 ### Converting spatial data into NUTS-2
 
-In order to convert the spatial information provided by all countries into NUTS-2 geographies, we first need to load a lookup table that details which NUTS-3 areas are part of which NUTS-2. I have previously created and saved a lookup table in csv format in an open access Github repository, but similar tables are also available in other formats from the ESS platform: [https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html). In order to load the lookup table in `R`, we can use the `getURL()` functions from `RCurl` [ADD REF] and `read.csv()`.
+In order to convert the spatial information provided by ESS into NUTS-2 geographies, we first need to load a lookup table that details which NUTS-3 areas are part of which NUTS-2 geographies. I have previously created and saved a lookup table in csv format in an open access Github repository, but similar tables are also available in other formats from the ESS platform: [https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html). In order to load the lookup table in `R`, we can use the `getURL()` function from `RCurl` [@cran2020] and `read.csv()`.
 
 ``` {r read lookup}
 
-library(RCurl)
+library(RCurl) # load RCurl package
 
+# save URL address as character value
 url_lookup <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/NUTS_lookup.csv")
 
-lookup <- read.csv(text = url_lookup)
+lookup <- read.csv(text = url_lookup) # load lookup table
 
 ```
 
-Now, we can create a new column in the original ESS data that specifies the regions for which we aim to produce small area estimates of trust in the police. We will merge the lookup table with the original ESS data using a `left_join()` function and create a new column called `domain` which shows the NUTS-2 areas (or NUTS-1 in Germany and UK) for which we will produce estimates.
-
+Now, we can create a new column in the original ESS data that specifies the regions for which we aim to produce small area estimates of trust in the police. To do this, first, we merge the lookup table with the original ESS data using a `left_join()` function, and then we create a new column called `domain` which shows the NUTS-2 areas (or NUTS-1 in Germany and UK) for which we will produce estimates.
 
 ``` {r ess nuts3 in nuts2}
 
-ess <- ess%>%
-  left_join(lookup, by = c("region" = "nuts3")) %>%          # merge lookup into ESS dataset
-  rename(domain = nuts2) %>%                                 # rename NUTS2 variable
-  mutate(domain = as.character(domain),                      # convert NUTS2 into character
-         domain = ifelse(is.na(domain), region, domain)) %>% # copy NUTS1 data if no NUTS2 information
-  filter(!(domain == 99999))                                 # delete NAs
+ess <- ess%>%                                 #set dataset to use
+  left_join(lookup, 
+            by = c("region" = "nuts3")) %>%   #merge lookup into ESS dataset
+  rename(domain = nuts2) %>%                  #rename NUTS2 variable as domain
+  mutate(domain = as.character(domain),       #convert NUTS2 into character
+         domain = ifelse(is.na(domain), 
+                         region, domain)) %>% #copy NUTS1 if there is no NUTS2
+  filter(!(domain == 99999))                  #delete NAs
 
 ```
 
@@ -277,76 +291,70 @@ Now our data is clean and ready to be used to produce estimates of trust in the 
 
 ## Producing direct estimates
 
-We will produce direct estimates based on the Horvitz-Thompson estimator [@horvitz1952], which is one of the most common approaches to produce direct estimates. It makes use of original survey data and survey weights to obtain design-unbiased estimates in each small area, but direct estimates may suffer from high variance and unreliability in those areas with small sample sizes. Moreover, estimates cannot be produced in areas with zero samples. We will produce Horvitz-Thompson estimates of the trust in police for European regions, but it is very likely than many estimators will not show adequate levels of precision. Model-based SAE approaches are needed when direct estimates are not precise enough.
+We can begin by producing direct estimates in each area. As discussed before, direct estimators make use of original survey data and survey weights to obtain design-unbiased estimates in each small area, but direct estimates may be too unreliabile in those areas with small sample sizes. We will produce direct estimates of the trust in police for European regions, but it is very likely than many estimates will not show adequate levels of precision. Model-based SAE approaches are needed when direct estimates are not precise enough.
 
-In order to produce small area estimates, we will use the `sae` package [REFS]. We need to install it and load it into your `R` system.
+In order to produce small area estimates, we will use the `sae` package [@molina2020]. We need to install it and load it into your `R` system.
 
 ``` {r load sae}
 
-library(sae)
+library(sae) # load sae package
 
 ```
 
-The Horvitz-Thompson estimator takes into account the population size in each area, and assumes that survey weights adjust our sample to the total population. Thus, we need to know how many people live in each region, and ensure that our weights adjust the sample to the population size. I have previously downloaded the population sizes from Eurostat and uploaded a clean dataset onto Github. Downloading data from sources of official statistics, such as Eurostat, usually mean having to spend some time cleaning the data and selecting those variables that adjust to our research needs. For the purpose of this exercise, I have cleaned the data and uploaded onto an online repository, but later we will also see how to load Eurostat data into our `R` environments.
+Direct estimators take into account the population size in each area, and assume that survey weights adjust our sample size to the total population in each area. In other words, we need to know the number of residents in each region, and ensure that our survey weights adjust the area sample size to the population size.
+
+
+### Download data about population sizes
+
+I have previously downloaded the regional population sizes from Eurostat and uploaded a clean dataset onto a Github repository. Downloading data from sources of official statistics, such as Eurostat, usually means having to spend some time cleaning the data and selecting those variables that adjust to our research needs. For the purpose of this exercise, I have downloaded, cleaned and saved the data previously, but later we will also see how to load Eurostat data into our `R` environments.
 
 ``` {r read population}
 
-url_pop <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/population.csv")
+# save URL address as character value
+url_pop <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/popsize.csv")
 
-pop <- read.csv(text = url_pop)
-
-```
-
-
-
-``` {r dataset popsize}
-
-pop <- pop %>%
-  mutate(area = 1:n()) %>%                 # create numeric id value
-  rename("domain" = "X.U.FEFF.domain") %>% # rename region column name
-  subset(select = c(1, 3, 2)) %>%          # reorder columns
-  filter(domain %in% ess$domain)           # filter out areas not present in ESS
+pop <- read.csv(text = url_pop) # load population size
 
 ```
 
+Now we have almost all information necessary to produce our direct estimates: *(a)* the variable of interest (column `trstplc` in `ess` dataset), *(b)* the area population size (`pop2014` in `pop` dataset), and spatial information that matches both datasets. Nevertheless, as introduced above, direct estimators also require the use of survey weights that adjust our sample size to the population size in each.
 
 
+### Readjust ESS survey weights
 
-Now we have almost all information necessary to produce our direct estimates: the variable of interest (variable `trstplc` in the `ess` dataset), the area population size (`pop2014` in `pop` dataset), and spatial information that matches in both datasets. Nevertheless, as introduced above, the Horvitz-Thompson estimator also requires the use of survey weights that adjust our sample to the population size. Given that the weights published by ESS are not designed to let respondents represent a specific number of citizens, but instead they were computed to adjust the sample to the population characteristics, we will need to recalibrate the ESS weights to the population sizes per region. We can do this by running the following lines of code:
+The survey weights published by ESS are not designed to let respondents represent a specific number of citizens, but instead they were computed to adjust chances of selection of every unit in the sample to the population characteristics. You can find a detailed guide about ESS survey weights here: [https://www.europeansocialsurvey.org/docs/methodology/ESS_weighting_data_1.pdf](https://www.europeansocialsurvey.org/docs/methodology/ESS_weighting_data_1.pdf). We will readjust our survey weights so that weighted respondents coincide to known population totals, while maintaining the design of the original weights that adjust for sample selection bias and unequal population sizes across countries. We can do this by running the following lines of code:
 
 ``` {r compute weight}
 
-ess_w_area <- ess %>%
-  filter(domain %in% pop$domain) %>%        # filter out areas not present in population dataset
-  group_by(domain) %>%                      # create groups by region
-  summarise(w_sum = sum(pspwght * pweight)) # sum weights per region
+ess_w_area <- ess %>%                      #set dataset to use
+  filter(domain %in% pop$domain) %>%       #filter areas present in pop dataset
+  group_by(domain) %>%                     #create groups by region
+  summarise(w_sum = sum(pspwght * pweight))#sum weights per region
 
-ess <- ess %>%
-  filter(domain %in% pop$domain) %>%          # filter out areas not present in population dataset
-  left_join(ess_w_area, by = "domain") %>%    # merge sum of weights with ESS units 
-  left_join(pop, by = "domain") %>%           # merge region population sizes
-  mutate(weight = pspwght * pweight,          # compute weights for cross-national analysis
-         weight = (weight * pop2016) / w_sum) # recalibrate weights to population sample size
+ess <- ess %>%                               #set dataset to use
+  filter(domain %in% pop$domain) %>%         #filter areas present in pop dataset
+  left_join(ess_w_area, by = "domain") %>%   #merge sum of weights with ESS units 
+  left_join(pop, by = "domain") %>%          #merge region population sizes
+  mutate(weight = pspwght * pweight,         #create weights for cross-national analysis
+         weight = (weight * pop2016) / w_sum)#readjust weights to population size
 
 ```
 
-After a few steps, we now have all necessary information to produce our direct estimates of confidence in policing. We use the `direct()` function from `sae` to produce Horvitz-Thompson estimates in each region. It will also produce the Coefficient of Variation of each estimate, which will be used to assess the reliability of these direct estimates.
+After a few steps, we now have all necessary information to produce our direct estimates of confidence in the police. We use the `direct()` function from `sae` to produce direct estimates in each region. It will also produce the CV of each estimate, which will be used to assess the reliability of these direct estimates.
 
 ``` {r direct}
 
-dir <- direct(y       = ess$trstplc,
-              dom     = ess$area,
-              sweight = ess$weight,
-              domsize = pop[,2:3],
-              replace = FALSE)
+dir <- direct(y       = ess$trstplc,#set variable of interest
+              dom     = ess$area,   #areas to produce estimates 
+              sweight = ess$weight, #survey weghts
+              domsize = pop[,2:3])  #population size
 
 ```
 
 
 ### Exploring direct estimates
 
-Once we have produced our direct estimates of trust in the police, we can see how these look like by using some functions introduced above.
-
+Once we have produced our direct estimates of trust in the police, we can see how these look like by using the `summary()` function introduced before.
 
 ``` {r summary dir}
 
@@ -354,6 +362,7 @@ summary(dir$Direct) # summary statistics of direct estimates
 
 ```
 
+Our direct estimates show that, across all areas, the average percentage of residents who have more trust in the police than the European average is `r round(mean(dir$Direct), 2)*100`%, but there is a large variation across areas. For instance, the region with the smallest direct estimate indicates that only `r round(min(dir$Direct), 2)*100`% of residents have more trust in the police than the average in Europe, whereas `r round(max(dir$Direct), 2)*100`% of 
 
 ``` {r dir cv boxplot}
 
@@ -573,10 +582,13 @@ Now we will load a shapefile of combined NUTS regions for all European countries
 
 ```{r load geojson, results="hide"}
 
-library(sf)
+library(sf) # load sf package
+
+url_nuts <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/shapefile/nuts_ess8.geojson")
+nuts <- st_read(url_nuts)
 
 # download geojson
-nuts <- st_read("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/shapefile/nuts_ess8.geojson")
+#nuts <- st_read("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/shapefile/nuts_ess8.geojson")
 
 st_crs(nuts) <- 15752 # change CRS to ED79 (EPSG:4668 with transformation)
 
