@@ -57,3 +57,4 @@ write.csv(covs, "data/covs_imp.csv")
 
 # Save selected imputed covariates.
 write.csv(covs_short, "data/covs_short_imp.csv")
+
