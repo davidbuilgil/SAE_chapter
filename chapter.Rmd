@@ -399,23 +399,24 @@ eurostat_cri <- search_eurostat("offender")  #search data about crime
 
 ```
 
-We see, for example, that our search has found `r nrow(eurostat_edu)` datasets that contain the word *"education"*, and `r nrow(eurostat_cri)` that contain the word *"offender"*. We will need to spend some time searching those covariates that are more suitable for our study. Once we know the codes of the datasets we are interested to use, we can use the `get_eurostat()` function to import these into our `R` system. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 that have a higher education degree in each region. We can download this dataset and see how it looks like:
+We see, for example, that our search has found 1006 datasets that contain the word *"education"*, and 4 that contain the word *"offender"*. We will need to spend some time searching those covariates that are more suitable for our study. Once we know the codes of the datasets we are interested to use, we can use the `get_eurostat()` function to import these into our `R` system. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 that have a higher education degree in each region. We can download this dataset and see how it looks like:
 
 ```{r get higher edu, eval=FALSE}
 
-he <- get_eurostat(id = "edat_lfs_9918")
+he <- get_eurostat(id = "edat_lfs_9918") #download data from Eurostat
 
 ```
 
 This is only one possible source of data that we may use to find covariates for our area-level models. The ESS website, for example also publishes interesting area-level covariates at the different spatial scales ([https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html)). In any case, we will need to spend some time wrangling and subsetting these sources data to make sure we can use them as covariates in our area-level SAE models. 
 
-For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. I have also used Multiple Imputation via bootstrap and predictive mean matching to impute some missing values in certain regions (see original codes used for this here: []()). We can load the dataset of clean and ready-to-use covariates into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website.
+For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. I have also used Multiple Imputation via bootstrap and predictive mean matching to impute some missing values in certain regions (see original codes used for this here: [https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R](https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R)). We can load the dataset of clean and ready-to-use covariates into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website.
 
 ``` {r read covariates}
 
-url_covs <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs_short.csv")
+# save URL address as character value
+url_covs <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs_short_imp.csv")
 
-covs <- read.csv(text = url_covs)
+covs <- read.csv(text = url_covs) # save covariates
 
 pop <- pop %>%
   left_join(covs, by = "domain") # merge covariates with direct estimates
@@ -427,50 +428,6 @@ rate crimes * 10000
 Describe variables like this:
 - *BLA*: bla bla bla
 
-Once all our covariates are clean and ready to use, we can briefly explore them using the `dplyr` package. For instance, we may want to know the number of missing values in each covariate:
-	
-``` {r count nas}
-
-pop %>%
-  dplyr::select(fem_p_16, gdp_eurhab_16, robb_r_10, burg_r_10, he_p_16, medage_16) %>%
-  summarise_all(funs(sum(is.na(.))))
-
-```
-
-
-### Impute missing values
-
-Multiple Imputation using Bootstrap and PMM
-
-``` {r imput model, results="hide"}
-
-library(Hmisc)
-
-fun_imput <- aregImpute(~ fem_p_16 + gdp_eurhab_16 + robb_r_10 + burg_r_10 + he_p_16 + medage_16, 
-                  data = pop, n.impute = 10)
-
-```
-
-
-``` {r imput, results="hide"}
-  
-imputed <- as.data.frame(impute.transcan(fun_imput, 
-                                         imputation = 1, 
-                                         rhsImp = "mean", 
-                                         data = pop, 
-                                         list.out = T))
-
-```
-
-
-
-``` {r copy imput}
-
-pop <- pop %>%
-  dplyr::select(domain, area, pop2016, SampSize, Direct, SD, CV) %>%
-  cbind(imputed)
-
-```
 
 ## Fitting area-level models and predicting synthetic estimates
 
