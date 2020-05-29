@@ -109,9 +109,9 @@ The exemplar study is designed for you to acquire a number of different practica
 
 As discussed above, in this exemplar study we will use ESS data. The ESS is a biannual cross-national survey designed to measure social attitudes, beliefs and behaviors in Europe. It has been conducted since 2001 in more than 35 countries, and is designed to be representative of all individual residents aged 15 or older who live in private households in each participant country, regardless of their nationality, citizenship or language. The ESS allows for cross-national and cross-sectional comparisons of crime-related issues such as the confidence in police services, worry about crime and crime victimization experience in the last 5 years. For instance, it includes the following variables of interest for crime analysts:
 
-**1.-** *"Have you or a member of your household been the victim of a burglary or assault in the last 5 years?"*
-**2.-** *"How safe do you – or would you – feel walking alone in this area after dark?"*
-**3.-** *"Using this card, please tell me on a score of 0-10 how much you personally trust each of the institutions I read out [...]": "[...] the legal system" and "[...] the police".*
+1. *"Have you or a member of your household been the victim of a burglary or assault in the last 5 years?"*
+2. *"How safe do you – or would you – feel walking alone in this area after dark?"*
+3. *"Using this card, please tell me on a score of 0-10 how much you personally trust each of the institutions I read out [...]": "[...] the legal system" and "[...] the police".*
 
 These measures have previously been used to study victimization, perceived safety, trust in the police, and trust in the legal system [e.g., @hough2014; @hummelsheim2011; @kaariainen2007], but there are many other questions that may also be of interest for criminologists (e.g., racism, discrimination against immigrants, homophobia). The whole ESS questionnaire is available here: [https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf](https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf).
 
@@ -354,7 +354,7 @@ dir <- direct(y       = ess$trstplc,#set variable of interest
 
 ### Exploring direct estimates
 
-Once we have produced our direct estimates of trust in the police, we can see how these look like by using the `summary()` function introduced before.
+Once we have produced our direct estimates of trust in the police, we can see how these look like by using the `View()` function. We can also obtain some summary statistics of our direct estimates using the `summary()` function introduced before.
 
 ``` {r summary dir}
 
@@ -362,20 +362,19 @@ summary(dir$Direct) # summary statistics of direct estimates
 
 ```
 
-Our direct estimates show that, across all areas, the average percentage of residents who have more trust in the police than the European average is `r round(mean(dir$Direct), 2)*100`%, but there is a large variation across areas. For instance, the region with the smallest direct estimate indicates that only `r round(min(dir$Direct), 2)*100`% of residents have more trust in the police than the average in Europe, whereas `r round(max(dir$Direct), 2)*100`% of 
+Our direct estimates show that, across all areas, the average percentage of residents who have more trust in the police than the European average is `r round(mean(dir$Direct), 2)*100`%, but there is a large variation across areas. For instance, the region with the smallest direct estimate indicates that only `r round(min(dir$Direct), 2)*100`% of residents have more trust in the police than the average in Europe, whereas there is one region where `r round(max(dir$Direct), 2)*100`% of residents have more trust in the police than the European average.
 
-``` {r dir cv boxplot}
+We do not know yet, however, how reliable are these direct estimates. You can explore the direct estimates' CV by viewing the dataset (`View()` function), but you can also print some summary statistics that will give us a hint of the level of reliability of our direct estimates.
 
-# produce boxplot of coefficients of variation
-ggplot(dir, aes(x=Domain, y=CV)) + 
-  geom_boxplot() +
-  ggtitle("Coefficient of Variation of direct estimates")
+``` {r summary cv}
+
+summary(dir$CV) # summary statistics of CV
 
 ```
 
-As you can see in the boxplot, the estimates of the majority of regions have a Coefficient of Variation smaller than 20%, which is a very good indicator of reliability of these estimates; but we also have a few regions with Coefficients of Variation larger than 25%. We can improve the accuracy of these estimates by using model-based small area estimation models.
+As you can see, the average CV of our direct estimates (`r round(mean(dir$CV), 2)`) is quite small according to SAE standards, but the maximum value of CV is `r round(max(dir$CV), 2)`, which indicates that the direct estimate in at least one area is highly unreliable. If we observe our direct estimates, we will see that `r length(which(dir$CV >= 15))` direct estimates have measures of CV larger than 15%, `r length(which(dir$CV >= 25))` of them have a CV larger than 25%, and `r length(which(dir$CV >= 50))` of them has a CV larger than 50%. These results are not the end of the world, but we need to do our best to improve the reliability of small area estimates in those areas where their CV show inadequate levels of reliability. We need model-based SAE.
 
-For now, we can merge our direct estimates into the dataset of area-level information by using the `left_join()` function from `dplyr.
+For now, however, we will merge our direct estimates into the dataset of area-level information by using the `left_join()` function from `dplyr`.
 
 ``` {r copy dir into pop}
 
@@ -387,20 +386,20 @@ pop <- pop %>%
 
 ## Downloading area-level covariates
 
-In order to fit area-level models of trust in police and produce area-level estimates, we will need area-level covariates that are associated with our variable of interest. ADD SOME LITERATURE ON COVARIATES!!!
+In order to estimate area-level models of trust in police and produce area-level small area estimates, we will need area-level covariates that are associated with our variable of interest. We may need to conduct some preliminary literature review to explore which contextual elements have been used to explain our variable of interest. For example, in our case, we can read key articles and book analyzing the contextual predictors of trust in the police in European countries, such as @jackson2013, @kaariainen2007 and @staubli2017, but also in other contexts (e.g., @cao2012). We can see, for instance, that researchers have used measured related to crime rates, education level, income and level of democracy, among others, to explain the spatial distribution of trust in the police. We will download and use data about some of these as covariates to estimate our area-level models and produce model-based small area estimates.
 
-We can download various area-level covariates from Eurostat using the `eurostat` package [@lahti2020], which has been created by facilitate downloading data from Eurostat into `R`. Eurostat is a very large data repository that publishes large datasets of social, econonomic and demographic information for European countries and regions. We can use the `search_eurostat()` function to search predefined key words associated with variables of interest for our study. The function will return a list of all datasets including our keywords, and can then explore which of them are more suitable for our study. For example, we may want to know if education levels and crime rates are somehow associated with the regional levels of trust in the police, and thus we can search Eurostat datasets that include the words *"education"* and *"offender"*. I have done this search and found various variables of interest, but you can also try this at home and probably you will also find variables of interest for our models.
+We can download various area-level covariates from Eurostat using the `eurostat` package [@lahti2020]. Eurostat is a very large data repository that publishes large datasets of social, econonomic and demographic information for European countries and regions. We can use the `search_eurostat()` function to search predefined key words associated with variables of interest for our study, such as *"education"* or *"offender"*. The function will return a list of all available datasets including our keywords, and we can then explore which of them are more suitable to use as covariates in our area-level models. For example, we may want to know if education levels and crime rates are somehow associated with the regional levels of trust in the police. I have done this search and found various variables of interest, but you can also try this at home and probably you will also find variables of interest to use in our model.
 
 ```{r find covariates, eval=FALSE}
 
-library(eurostat)
+library(eurostat) # load eurostat package
 
-eurostat_edu   <- search_eurostat("education") # search datasets about education
-eurostat_crime <- search_eurostat("offender")  # search datasets about crime
+eurostat_edu <- search_eurostat("education") #search data about education
+eurostat_cri <- search_eurostat("offender")  #search data about crime
 
 ```
 
-Once we know the codes of the datasets we are interested to do, we can use the `get_eurostat()` function to import these into our `R` environment. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 in each NUTS-2 that have a higher education degree. We can download this dataset and see how it looks like:
+We see, for example, that our search has found `r nrow(eurostat_edu)` datasets that contain the word *"education"*, and `r nrow(eurostat_cri)` that contain the word *"offender"*. We will need to spend some time searching those covariates that are more suitable for our study. Once we know the codes of the datasets we are interested to use, we can use the `get_eurostat()` function to import these into our `R` system. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 that have a higher education degree in each region. We can download this dataset and see how it looks like:
 
 ```{r get higher edu, eval=FALSE}
 
@@ -408,13 +407,9 @@ he <- get_eurostat(id = "edat_lfs_9918")
 
 ```
 
-If we open this file (using the `View()` function), we can see that it is includes information about many indicators, years, age groups, spatial scales and divided by sex. All datasets imported from Eurostat provide information abou many different measures, which means that we will need to spend some time wrangling and subsetting these data to make sure we can attach these to our area-level direct estimates to estimate the area-level models needed to produce model-based estimates. For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. We can load this dataset into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website. Moreover, the ESS website also publishes interesting area-level covariates at the different scales: [https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html).
+This is only one possible source of data that we may use to find covariates for our area-level models. The ESS website, for example also publishes interesting area-level covariates at the different spatial scales ([https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html)). In any case, we will need to spend some time wrangling and subsetting these sources data to make sure we can use them as covariates in our area-level SAE models. 
 
-
-
--> do multiple imputation in another file and download imputed values!!!!
-
-
+For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. I have also used Multiple Imputation via bootstrap and predictive mean matching to impute some missing values in certain regions (see original codes used for this here: []()). We can load the dataset of clean and ready-to-use covariates into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website.
 
 ``` {r read covariates}
 
