@@ -28,14 +28,14 @@ covs %>%
 
 # Fit multiple imputation model via Bootstrapping and Predictive Mean Matching.
 fun_imput <- aregImpute(~ fem_p_16   + popdens_16  + netmig_r_16 + gdp_eurhab_16 + 
-                          pps_hab_16 + loun_ths_16 + unra1524_16 + unraall_16    +
-                          hcide_r_10 + robb_r_10   + burg_r_10   + vthft_r_10    +
-                          he_p_16    + medage_16, 
+                          pps_hab_16 + unra1524_16 + unraall_16  + hcide_r_10    + 
+                          robb_r_10  + burg_r_10   + vthft_r_10  + he_p_16       + 
+                          medage_16, 
                         data = covs, n.impute = 10)
 
 # Check R Squared with which each missing variable could be predicted from the others. 
 fun_imput$rsq
-# Not bad at all!
+# Not bad.
 
 # Replace missing data with the mean of the multiple imputations for each case.
 imputed <- as.data.frame(impute.transcan(fun_imput,       imputation = 1, 
