@@ -174,7 +174,7 @@ summary(ess$trstplc) # print summary statistics
 
 ```
 
-We see that the average score of trust in police in Europe is `r round(mean(ess$trstplc, na.rm = T), 2)`, and the median value is `r median(ess$trstplc, na.rm = T)`. We can use the same `summary()` function to analyze the values of trust in other social institutions, such as the legal system (variable `trstlgl`), politicians (`trtplt`), political parties (`trtprt`), the country's parliament (`trstprl`) or the United Nations (`trstun`). On average, Europeans appear to have more trust in the police than in other key political and legal institutions. We can also see that `r sum(length(which(is.na(ess$trstplc))))` persons did not answer this question.
+We see that the average score of trust in police in Europe is `r round(mean(ess$trstplc, na.rm = T), 2)`, and the median value is `r median(ess$trstplc, na.rm = T)`. We can use the same `summary()` function to analyze the values of trust in other social institutions, such as the legal system (variable `trstlgl`), politicians (`trtplt`), political parties (`trtprt`), the country's parliament (`trstprl`) or the United Nations (`trstun`). On average, Europeans appear to have more trust in the police than in other key political and legal institutions. We can also see that `r sum(length(which(is.na(ess$trstplc))))` persons did not answer this question (i.e., 'NAs'.
 
 We can obtain some more detailed information about the citizens' trust in the police by counting the frequency of respondents that chose each score and creating a bar plot to visualize their distribution. We will use functions from the the packages `dplyr` and `ggplot2` [@wickham2020b] for this. More specifically, we use the `group_by()` function from `dplyr` to create groups of respondents based on their score of trust in police, and use the functions `summarize()` and `mutate()` from the same package to save the results in two columns showing the number (`n`) and proportion (`prop`) of respondents in each category. We save this new table in a new dataset called `trust_poli`.
 
@@ -213,10 +213,10 @@ Thus, we need to recode our variable of interest. We will use the `mutate()` and
 
 ``` {r recode trustpoli}
 
-ess <- ess %>%           # set dataset to use
-                         # if trust above or equal to mean, assign 1, otherwise 0
+ess <- ess %>%           #set dataset to use
+                         #if trust above or equal to mean, assign 1, if not 0
   mutate(trstplc = ifelse(trstplc >= mean(trstplc, na.rm = T), 1, 0)) %>%
-  filter(!is.na(trstplc))# delete NAs
+  filter(!is.na(trstplc))#delete NAs
 
 ```
 
@@ -275,14 +275,14 @@ Now, we can create a new column in the original ESS data that specifies the regi
 
 ``` {r ess nuts3 in nuts2}
 
-ess <- ess%>%                                 #set dataset to use
+ess <- ess%>%                                #set dataset to use
   left_join(lookup, 
-            by = c("region" = "nuts3")) %>%   #merge lookup into ESS dataset
-  rename(domain = nuts2) %>%                  #rename NUTS2 variable as domain
-  mutate(domain = as.character(domain),       #convert NUTS2 into character
+            by = c("region" = "nuts3")) %>%  #merge lookup into ESS dataset
+  rename(domain = nuts2) %>%                 #rename NUTS2 variable as domain
+  mutate(domain = as.character(domain),      #convert NUTS2 into character
          domain = ifelse(is.na(domain), 
-                         region, domain)) %>% #copy NUTS1 if there is no NUTS2
-  filter(!(domain == 99999))                  #delete NAs
+                         region, domain)) %>%#copy NUTS1 if there is no NUTS2
+  filter(!(domain == 99999))                 #delete NAs
 
 ```
 
@@ -378,8 +378,8 @@ For now, however, we will merge our direct estimates into the dataset of area-le
 
 ``` {r copy dir into pop}
 
-pop <- pop %>%
-  left_join(dir, by = c("area" = "Domain"))
+pop <- pop %>%                              # set dataset to use
+  left_join(dir, by = c("area" = "Domain")) # merge direct estimates
 
 ```
 
@@ -418,7 +418,7 @@ url_covs <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/m
 
 covs <- read.csv(text = url_covs) #save covariates
 
-pop <- pop %>%
+pop <- pop %>%                   #set dataset to use
   left_join(covs, by = "domain") #merge covariates with our data
 
 ```
@@ -437,7 +437,7 @@ One may notice that all these covariates represent data from 2016, with the exce
 
 ## Fitting area-level models and predicting synthetic estimates
 
-All our area-level variables (outcome measure and covariates) are now clean and ready to be used to produce small area estimates. The first step, as discussed before, is fitting an area-level model that links our direct estimates with our covariates. We will use the `lm()` function to fit our area-level linear model, and we can see the results of our model using the `summary()` function.
+All our area-level variables (i.e., outcome measure measured by the direct estimates, and covariates) are now clean and ready to be used to produce small area estimates. The first step, as discussed before, is fitting an area-level model that links our direct estimates with our covariates. We will use the `lm()` function to fit our area-level linear model, and we can see the results of our model using the `summary()` function.
 
 ``` {r fit model}
 
@@ -448,22 +448,7 @@ model <- lm(Direct ~ fem_p_16  + gdp_eurhab_16 + robb_r_10 +
 
 ```
 
-Since 
-
-
-Below we present the standardized coefficients of our area-level model
-
-
-And we will also substract all independent variables from the mean and divide these by two standard deviations, as suggested by @gelman2008, which will allow us to obtain standardised coefficients not affected by the dimensions of each variable:
-
-`r model_tab`
-
-Check r squared
-
-`summary(model)$r.squared` 
-
-`r round(summary(model)$r.squared, 2)`
-
+As you may have already noticed, we are using covariates with very different scales and dimensions. For example, the covariate about GDP per capita has a minimum value of `r min(pop$gdp_eurhab_16)` and its maximum is `r max(pop$gdp_eurhab_16)`, whereas the variable about proportion of females ranges between `r round(min(pop$fem_p_16), 2)` and `r round(max(pop$fem_p_16), 2)`, and our covariate measuring rate of robberies varies between `r round(min(pop$robb_r_10), 2)` and `r round(max(pop$robb_r_10), 2)`. This is not problematic for regression analysis nor SAE, but we may want to standardize the regression coefficients when presenting the model results, in order to be able to compare the relative importance of each covariate in our model [see @gelman2008]. We can do this by scaling all our variables using the `scale()` function before fitting the linear model. Model results are shown in Table 1. Scaling our variables does not have any effect on our analyses, but allows us to better understand the effect of each covariate in our regression model.
 
 ``` {r model output, echo = FALSE}
 
@@ -482,36 +467,29 @@ model_tab <- xtable(summary(model.sc)$coef, digits=c(0, 2, 2, 1, 2),
 
 ```
 
+`r model_tab`
 
+We can see in Table 1 that those European regions with a larger GDP per capita are also those with more trust in the police. we also see that areas with a larger proportion of females show lower values of trust in the police, areas with more citizens with a higher education qualification generally have more trust in the police, and the median age is positively associated with the area-level measure of trust in police (ageing regions trust more the police than areas with younger populations). The two measures of crime rates show a negative coefficient, but these are not statistically significant.
 
+We can also check the model R squared by running `summary(model)$r.squared` and observe that the R Squared equals `r round(summary(model)$r.squared, 2)`, which indicates that `r round(summary(model)$r.squared, 2)*100`% of the variance of the direct estimates of trust in police is predictable from our covariates.
 
-
-We can also predict the synthetic estimates from our model. Synthetic estimation is the umbrella term used to describe the group of SAE techniques that produce small area estimates by fitting a regression model with area-level direct estimates as the dependent variable and relevant area-level auxiliary information as covariates and then computing regression-based predictions (i.e., synthetic estimates). 
-
-Regression-based synthetic estimates can be produced for all areas regardless of their sample size (also areas with zero sample sizes). However, these are not based on a direct measurement of the variable in each area and suffer from a high risk of producing biased small area estimates [@levy1979; @rao2015].
-
-We use the `predict()` function to product synthetic estimates from our area-level linear model.
+The next step is using this area-level linear model to predicting our regression-based synthetic estimates of trust in police. As discussed above regression-based estimators can be produced for all areas regardless of their sample size, but these are not based on a direct measurement of the variable in each area and suffer from a high risk of bias [@levy1979; @rao2015]. We use the `predict()` function to product synthetic estimates from our area-level linear model, and then we can merge our synthetic estimates with our main dataset with regional data using the `cbind()` function.
 
 ``` {r predict lm}
 
 synthetic <- predict(model) # predict synthetic estimates
 
-```
-
-``` {r merge synth}
-
-pop <- pop %>%
-  cbind(synthetic)
+pop <- pop %>%     # set dataset to use
+  cbind(synthetic) # merge regression-based estimates
 
 ```
+
 
 ## Producing EBLUP estimates
 
-Using the same variables, we also fit our EBLUP (i.e., Empirical Best Linear Unbiased Predictor) model to produce model-based small area estimates.
+We are now ready to produce our area-level EBLUP estimates of trust in the police. Using the same covariates as before, we can estimate our EBLUP model and produce the EBLUP estimates using the `eblupFH()` function from `sae` package. As discussed above, the EBLUP obtains an optimal combination of direct and regression-based estimates in each small area, giving more weight to the direct estimate dimension when its sampling variance is small, while more weight is attached to the regression-based estimate when the direct estimate’s variance is larger. The EBLUP is thus used to reduce the variance of direct estimates and the risk of bias of regression-based estimates by producing the optimal combination of these in each area.
 
-The area-level EBLUP, which is based on the model developed by @fay1979, obtains an optimal combination of direct and regression-based synthetic estimates in each small area. The EBLUP combines both estimates in each area and gives more weight to the direct estimate when its sampling variance is small, while more weight is attached to the synthetic estimate when the direct estimate’s variance is larger. The EBLUP reduces the variance of direct estimates and the risk of bias of synthetic estimates by producing the optimal combination of these in each area.
-
-We use the `eblupFH()` function from `sae` package.
+When we use the `eblupFH()` function, we need to detail the elements of the model inside the argument part called `formula`, the variance of direct estimates (i.e., the square of the standard deviation, SD) inside the `vardir` argument, and the type of fitting method inside `method`. Here we use a Restricted Maximum Likelihood (REML) fitting method, which takes into account for the loss in degrees of freedom derived from estimating the model coefficients, but other approaches (e.g., Maximum Likelihood, ML, or Fay-Herriot, FH) should produce similar results.
 
 ``` {r EBLUP}
 
@@ -529,8 +507,30 @@ eblup$fit # print model results
 
 ```
 
+We can get the summary of the EBLUP model results by running the `eblup$fit` function, and observe whether the p-values of our EBLUP model have changed in comparison to the p-values of our linear model estimated before. There are some interesting changes, so we may want to have a look at those. Table 2 shows the standardized coefficients of our EBLUP model.
 
-We can get the EBLUP model results by using the `summary()` function. describe min, mean and max here
+``` {r model output, echo = FALSE}
+
+eblup.sc <- eblupFH(formula = scale(pop$Direct)    ~ scale(pop$fem_p_16)  + scale(pop$gdp_eurhab_16) + 
+                              scale(pop$robb_r_10) + scale(pop$burg_r_10) + scale(pop$medage_16) + 
+                              pop$he_p_16,
+                  vardir  = pop$SD^2,
+                  method  = "REML")
+  
+
+CONTINUE HERE!!!!!!!!!!
+
+
+names(eblup.sc$fit$estcoef) <- c('(Intercept)' , 'Proportion females', 'GDP per person (€)', 
+                                  'Robbery rate', 'Burglary rate'     , 'Median age',
+                                  'Proportion HE')
+
+model_tab <- xtable(summary(model.sc)$coef, digits=c(0, 2, 2, 1, 2), 
+                    caption = "Area-level model of trust in the police (standardized coefficients)")
+
+```
+
+`r model_tab`
 
 And finally we can merge the model-based small area estimates into our main dataset of area-level information. We use the `cbind()` function to merge the new columns.
 	
