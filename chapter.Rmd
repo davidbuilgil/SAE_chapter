@@ -386,9 +386,9 @@ pop <- pop %>%
 
 ## Downloading area-level covariates
 
-In order to estimate area-level models and produce model-based small area estimates of trust in the police, we need area-level covariates that are associated with our variable of interest. We may need to conduct some preliminary literature review to explore which contextual elements have been used to explain our variable of interest. For example, in our case, we can read key articles and book analyzing the contextual predictors of trust in the police in European countries, such as @jackson2013, @kaariainen2007 and @staubli2017, but also in other contexts (e.g., @cao2012). We can see, for instance, that researchers have used measured related to crime rates, education level, income and level of democracy, among others, to explain the spatial distribution of trust in the police. We will download and use data about some of these as covariates to estimate our area-level models and produce model-based small area estimates.
+In order to estimate area-level models and produce model-based small area estimates of trust in the police, we need area-level covariates that are associated with our variable of interest. We may need to conduct some preliminary literature review to explore which contextual features have been used to explain our variable of interest. For example, in our case, we can read key articles and book analyzing the contextual predictors of trust in the police in European countries, such as @jackson2013, @kaariainen2007 and @staubli2017, but also in other contexts (e.g., @cao2012). We can see, for instance, that researchers have used measured related to crime rates, education level, income and level of democracy, among others, to explain the meso- and macro-level spatial distribution of trust in the police. We will download and use data about some of these as covariates to estimate our area-level models and produce model-based small area estimates of truts in the police in Europe.
 
-We can download various area-level covariates from Eurostat using the `eurostat` package [@lahti2020]. Eurostat is a very large data repository that publishes large datasets of social, econonomic and demographic information for European countries and regions. We can use the `search_eurostat()` function to search predefined key words associated with variables of interest for our study, such as *"education"* or *"offender"*. The function will return a list of all available datasets including our keywords, and we can then explore which of them are more suitable to use as covariates in our area-level models. For example, we may want to know if education levels and crime rates are somehow associated with the regional levels of trust in the police. I have done this search and found various variables of interest, but you can also try this at home and probably you will also find variables of interest to use in our model.
+We can download various area-level covariates from Eurostat using the `eurostat` package [@lahti2020]. Eurostat is a very large data repository that publishes large datasets of social, economic and demographic information for European countries and regions. We can use the `search_eurostat()` function to search predefined key words associated with variables of interest for our study, such as *"education"* or *"offender"*. The function will return a list of all available datasets including our keywords. We can save this list and explore which datasets may be more suitable for our area-level models. For example, we may want to know if education levels and crime rates are somehow associated with the regional levels of trust in the police. I have done this search and found various variables of interest, but you can also try this at home, and probably you will also find other interesting datasets to be used in this study.
 
 ```{r find covariates, eval=FALSE}
 
@@ -399,7 +399,7 @@ eurostat_cri <- search_eurostat("offender")  #search data about crime
 
 ```
 
-We see, for example, that our search has found 1006 datasets that contain the word *"education"*, and 4 that contain the word *"offender"*. We will need to spend some time searching those covariates that are more suitable for our study. Once we know the codes of the datasets we are interested to use, we can use the `get_eurostat()` function to import these into our `R` system. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 that have a higher education degree in each region. We can download this dataset and see how it looks like:
+We see, for example, that our search has found 1006 datasets that contain the word *"education"*, and 4 that contain the word *"offender"*. We will need to spend some time searching which covariates are the most suitable for our study. Once we know the codes of the datasets we are interested to use, we can use the `get_eurostat()` function to import these into our `R` system. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 that have a higher education degree in each region. We can download this dataset and see how it looks like:
 
 ```{r get higher edu, eval=FALSE}
 
@@ -407,49 +407,71 @@ he <- get_eurostat(id = "edat_lfs_9918") #download data from Eurostat
 
 ```
 
-This is only one possible source of data that we may use to find covariates for our area-level models. The ESS website, for example also publishes interesting area-level covariates at the different spatial scales ([https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html)). In any case, we will need to spend some time wrangling and subsetting these sources data to make sure we can use them as covariates in our area-level SAE models. 
+This is only one possible source of data that we can use to find covariates for our area-level models. The ESS website, for example, also publishes interesting area-level covariates at the different spatial scales ([https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html)). In any case, we will need to spend some time wrangling and subsetting these sources data to make sure we can use them as covariates in our area-level SAE models. 
 
-For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. I have also used Multiple Imputation via bootstrap and predictive mean matching to impute some missing values in certain regions (see original codes used for this here: [https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R](https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R)). We can load the dataset of clean and ready-to-use covariates into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website.
+For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. I have also used multiple imputation via bootstrapping and predictive mean matching to impute a few missing values in some regions (see original codes used to impute missing values here: [https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R](https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R)). We can load the dataset with our clean and ready-to-use covariates into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates in the Eurostat website.
 
 ``` {r read covariates}
 
-# save URL address as character value
+#save URL address as character value
 url_covs <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/covs_short_imp.csv")
 
-covs <- read.csv(text = url_covs) # save covariates
+covs <- read.csv(text = url_covs) #save covariates
 
 pop <- pop %>%
-  left_join(covs, by = "domain") # merge covariates with direct estimates
+  left_join(covs, by = "domain") #merge covariates with our data
 
 ```
 
-rate crimes * 10000
+We can open this file using the `View()` function and see that it includes six area-level covariates that we will use in our models:
 
-Describe variables like this:
-- *BLA*: bla bla bla
+- *'fem_p_16'*: Proportion of females residing in each area in 2016.
+- *'gdp_eurhab_16'*: Gross Domestic Product (GDP) per capita in 2016, in euros (€).
+- *'robb_r_10'*: Robbery rate by 10,000 population in 2010.
+- *'burg_r_10'*: Burglary rate by 10,000 population in 2010.
+- *'he_p_16'*: Proportion of population with a higher education degree in 2016.
+- *'medage_16'*: Median age in 2016.
+
+One may notice that all these covariates represent data from 2016, with the exception of our two covariates measuring crime rates (from 2010). 2010 was the last year in which Eurostat published crime statistics for European regions. In this case we may be particularly interested in knowing the effect of crime rates on the trust in the police, and accept these covariates as proxy measures of crime levels for the purpose of this study, but we should be using covariates from the same year as our survey data when possible.
 
 
 ## Fitting area-level models and predicting synthetic estimates
 
-And we will also substract all independent variables from the mean and divide these by two standard deviations, as suggested by @gelman2008, which will allow us to obtain standardised coefficients not affected by the dimensions of each variable:
-
+All our area-level variables (outcome measure and covariates) are now clean and ready to be used to produce small area estimates. The first step, as discussed before, is fitting an area-level model that links our direct estimates with our covariates. We will use the `lm()` function to fit our area-level linear model, and we can see the results of our model using the `summary()` function.
 
 ``` {r fit model}
 
-model <- lm(Direct ~  fem_p_16  + gdp_eurhab_16 + robb_r_10 + 
-                      burg_r_10 +  medage_16    + he_p_16, 
+#estimate area-level linear model
+model <- lm(Direct ~ fem_p_16  + gdp_eurhab_16 + robb_r_10 + 
+                     burg_r_10 +  medage_16    + he_p_16, 
             data = pop)
 
 ```
+
+Since 
+
+
+Below we present the standardized coefficients of our area-level model
+
+
+And we will also substract all independent variables from the mean and divide these by two standard deviations, as suggested by @gelman2008, which will allow us to obtain standardised coefficients not affected by the dimensions of each variable:
+
+`r model_tab`
+
+Check r squared
+
+`summary(model)$r.squared` 
+
+`r round(summary(model)$r.squared, 2)`
 
 
 ``` {r model output, echo = FALSE}
 
 library(xtable)
 
-model.sc <- lm(scale(Direct) ~  scale(fem_p_16)  + scale(gdp_eurhab_16) + scale(robb_r_10) + 
-                                scale(burg_r_10) +  scale(medage_16)    + scale(he_p_16), 
-            data = pop)
+model.sc <- lm(scale(Direct) ~ scale(fem_p_16)  + scale(gdp_eurhab_16) + scale(robb_r_10) + 
+                               scale(burg_r_10) +  scale(medage_16)    + scale(he_p_16), 
+               data = pop)
 
 names(model.sc$coefficients) <- c('(Intercept)' , 'Proportion females', 'GDP per person (€)', 
                                   'Robbery rate', 'Burglary rate'     , 'Median age',
@@ -461,13 +483,8 @@ model_tab <- xtable(summary(model.sc)$coef, digits=c(0, 2, 2, 1, 2),
 ```
 
 
-`r model_tab`
 
-Check r squared
 
-`summary(model)$r.squared` 
-
-`r round(summary(model)$r.squared, 2)`
 
 We can also predict the synthetic estimates from our model. Synthetic estimation is the umbrella term used to describe the group of SAE techniques that produce small area estimates by fitting a regression model with area-level direct estimates as the dependent variable and relevant area-level auxiliary information as covariates and then computing regression-based predictions (i.e., synthetic estimates). 
 
