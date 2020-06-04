@@ -6,7 +6,7 @@ abstract: "Victimization surveys provide key information to analyze crime, perce
 author: |
   | David Buil-Gil
   | Department of Criminology, University of Manchester, UK
-date: "01/06/2020"
+date: "15/06/2020"
 output:
   pdf_document:
         latex_engine: xelatex
