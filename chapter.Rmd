@@ -1,6 +1,6 @@
 ---
 title: "Small Area Estimation for Crime Analysis"
-abstract: "Victimization surveys provide key information about crimes known and unknown to the police, and are the main source of data to analyze perceived safety and trust in the police. These surveys, however, are only designed to allow aggregating responses and producing reliable direct estimates (i.e., weighted means or totals) at very large spatial scales, such as countries or states. Sample sizes are generally too small to allow producing direct estimates of adequate precision at the increasingly refined spatial scales of the criminology of place. Model-based small area estimation may be used to increase the reliability of small area estimates produced from victimization surveys. Small area estimation techniques are designed to produce reliable estimates of parameters of interest (and their associated measures of error) for areas for which only small or zero sample sizes are available. In 2008, the US Panel to Review the Programs of the Bureau of Justice Statistics recommended the use of small area estimation to produce subnational estimates of crime. Since then, these techniques have been applied to study many variables of interest in criminology. This chapter introduces theory and a step-by-step exemplar study in `R` to show the utility of small area estimation to analyze crime and place. Small area estimates of trust in the police are produced from European Social Survey data.
+abstract: "Victimization surveys provide key information about crimes known and unknown to the police, and are the main source of data to analyze perceived safety and trust in the police. These surveys, however, are only designed to allow the aggregation of responses and production of reliable direct estimates (i.e., weighted means or totals) at very large spatial scales, such as countries or states. Sample sizes are generally too small to produce direct estimates of adequate precision at the increasingly refined spatial scales of the criminology of place. Model-based small area estimation may be used to increase the reliability of small area estimates produced from victimization surveys. Small area estimation techniques are designed to produce reliable estimates of parameters of interest (and their associated measures of error) for areas for which only small or zero sample sizes are available. In 2008, the US Panel to Review the Programs of the Bureau of Justice Statistics recommended the use of small area estimation to produce subnational estimates of crime. Since then, these techniques have been applied to study many variables of interest in criminology. This chapter introduces theory and a step-by-step exemplar study in `R` to show the utility of small area estimation to analyze crime and place. Small area estimates of trust in the police are produced from European Social Survey data.
   \\par
   \\textbf{Keywords:} Confidence in policing, European Social Survey, crime mapping, open data, GIS"
 author: |
@@ -8,9 +8,9 @@ author: |
   | Department of Criminology, University of Manchester, UK
 date: "15/06/2020"
 output:
+  word_document: default
   pdf_document:
         latex_engine: xelatex
-  word_document: default
 bibliography: refs.bib
 csl: apa.csl
 ---
@@ -26,8 +26,6 @@ options(tinytex.verbose = TRUE)
 options(xtable.comment = FALSE)
 ```
 
-**Full reference:** Buil-Gil, D. (2020). Small area estimation for crime analysis. In E. Groff & C. Haberman (Eds.), *The study of crime and place: A methods handbook*. Temple University Press.
-
 **Contact details:** David Buil-Gil. G18 Humanities Bridgeford Street Building, Cathie Marsh Institute for Social Research, University of Manchester. E-mail address: *david.builgil@manchester.ac.uk*
 
 **ORCID ID:** David Buil-Gil: 0000-0002-7549-6317.
@@ -35,7 +33,7 @@ options(xtable.comment = FALSE)
 
 # 1. Introduction 
 
-The study of crime and place is moving toward analyzing smaller levels of geography than ever before. Micro-level maps of crime are used to foreground those places where crime concentrates, and to design spatially-targeted strategies to tackle crime and disorder [@braga2018; @groff2010; @weisburd2012]. The move toward micro-level crime mapping has also provoked that researchers preoccupied with the study of emotions about crime and perceptions about the police begin shifting their attention toward to study of small levels of analysis, to study the effect of the immediate environment and social context on people's perceptions and emotions about crime and the police [e.g., @solymosi2015; @williams2019]. These issues have become topics of major interest for researchers, crime analysts and police administrations, who require precise - and reliable - maps of their spatial distribution to develop more accurate theoretical explanations and more efficient evidence-based policing strategies.
+The study of crime and place is moving toward analyzing smaller levels of geography than ever before. Micro-level maps of crime are used to foreground those places where crime concentrates, and to design spatially-targeted strategies to tackle crime and disorder [@braga2018; @groff2010; @weisburd2012]. The move toward micro-level crime mapping has also provoked those researchers preoccupied with the study of emotions about crime and perceptions about the police, shifting their attention toward small levels of analysis to study the effect of the immediate environment and social context on people's perceptions and emotions about crime and the police [e.g., @solymosi2015; @williams2019]. These issues have become topics of major interest for researchers, crime analysts and police administrations, who require precise - and reliable - maps of their spatial distribution to develop more accurate theoretical explanations and more efficient evidence-based policing strategies.
 
 Police-recorded crimes and calls for police services are the main sources of data used to identify those micro places where crime is more prevalent. Crimes known to police, however, may be affected by missing data due to underreporting affecting some areas more than others [@brantingham2018; @xie2019]. Victimization surveys provide key information to account for crimes known and unknown to the police, and are the main source of information to analyze emotions about crime and perceptions about the police [@rosenbaum1995; @xie2019]. The two main victimization surveys are probably the National Crime Victimization Survey (NCVS) in the United States, and the Crime Survey for England and Wales (CSEW) in the UK. However, these surveys are not designed to allow researchers and practitioners to aggregate responses at the level of small geographies. Sample sizes are large enough to produce direct outputs only for large spatial scales, such as countries or states, but small levels of geography suffer from small sample sizes. In more precise terms, surveys are generally designed to allow producing reliable direct estimates (i.e., weighted means or totals) for large areas included in the sampling design, but directly aggregating data from a few respondents in each small area will inevitably lead to imprecise and unreliable maps. Model-based small area estimation (SAE) techniques may be applied to increase the reliability of small area estimates of parameters of criminological interest produced from survey data [@rao2015].
 
@@ -44,7 +42,7 @@ This chapter introduces theory and a step-by-step exemplar study in `R` [@R2020]
 
 # 2. Foundations of small area estimation
 
-@pfeffermann2013 defines SAE as a group of techniques designed to "produce reliable estimates of characteristics of interest such as means, counts, quantiles, etcetera, for areas or domains for which only small samples or no samples are available” (p. 40). SAE is an umbrella term used to classify many different techniques developed to deal with different types of data, but all aimed to improve the reliability of estimates produced for areas with small sample sizes [see a review of the main SAE techniques in @rao2015]. In this regard, those who use SAE techniques use the term *'small areas'* to describe not only low-level geographies, but any area whose sample size is too small to allow producing direct estimates of adequate precision. In the exemplar study presented below, for example, we will produce small area estimates of trust in the police in European regions. These are not small units of analysis, but suffer from small sample sizes in many areas.
+@pfeffermann2013 defines SAE as a group of techniques designed to "produce reliable estimates of characteristics of interest such as means, counts, quantiles, etcetera, for areas or domains for which only small samples or no samples are available” (p. 40). SAE is an umbrella term used to classify many different techniques developed to deal with different types of data, but all aimed to improve the reliability of estimates produced for areas with small sample sizes [see a review of the main SAE techniques in @rao2015]. In this regard, those who use SAE techniques use the term *'small areas'* to describe not only low-level geographies, but any area whose sample size is too small to allow the production of direct estimates with adequate precision. In the exemplar study presented below, for example, we will produce small area estimates of trust in the police in European regions. These are not small units of analysis, but suffer from small sample sizes in many areas.
 
 
 ## 2.1 Direct estimation
@@ -54,7 +52,7 @@ As described above, direct estimators use only survey data recorded in each area
 
 ## 2.2 Model-based estimation
 
-Indirect SAE is also known as *'model-based'* SAE, since these techniques make use of explicit linking models to 'borrow strength' across related areas. In essence, these techniques link information recorded by the original survey in each area to auxiliary variables registered by (generally) administrative agencies or census data, and use this information to increase the reliability of our estimates in all areas. For example, if we know that the chances of falling victim to crime are associated with the level of deprivation of the area in which we reside, we can estimate a model that links the crime victimization recorded in the survey to known poverty measures in each place, thus producing higher estimates of crime victimization in deprived areas than in wealthier neighborhoods. These auxiliary variables are generally called *covariates*. The quality of the covariates used and the accuracy of the linking model will be key to obtain reliable small area estimates.
+Indirect SAE is also known as *'model-based'* SAE, since these techniques make use of explicit linking models to 'borrow strength' across related areas. In essence, these techniques link information recorded by the original survey in each area to auxiliary variables (generally) registered by administrative agencies or census data, and use this information to increase the reliability of our estimates in all areas. For example, if we know that the chances of falling victim to crime are associated with the level of neighborhood deprivation, we can estimate a model that links the crime victimization recorded in the survey to known poverty measures in each place, thus producing higher estimates of crime victimization in deprived areas, and lower estimates in wealthier areas. These auxiliary variables are generally called *covariates*. The quality of the covariates used and the accuracy of the linking model will be key to obtain reliable small area estimates.
 
 When we use explicit models to link information available for all sampled units with unit-specific covariates, then we are using a *'unit-level'* SAE approaches. On the other hand, if our linking model is estimated by relating the area-level direct estimates of our variable of interest to area-level covariates, then we would be using *'area-level'* SAE. Area-level SAE approaches are generally preferred when our variable of interest is particularly affected by the contextual characteristics of each area [@namazirad2015]. The study of crime and place has shown that crime-related variables are strongly associated with the characteristics of small areas [e.g., @bruntonsmith2012; @weisburd2012], and thus here we focus on the use of area-level SAE.
 
@@ -71,11 +69,11 @@ A composite estimator that combines the direct and synthetic estimate in each ar
 
 ## 2.3 Calculating the uncertainty of estimates
 
-One of the main advantages of using SAE is that a great deal of work has been carried about how to estimate the measure of uncertainty of each small area estimate produced in each area. These measures of uncertainty are usually presented as Mean Squared Errors (MSE) or Relative Root Mean Squared Errors (RRMSE). The MSE is the averaged squared error of an estimate, representing the difference between the estimate value and the expected true value of what is measured. MSE is computed to account for both the variance of estimates (i.e., spread of estimates from one sample to another) and their bias (i.e., distance between the estimated value and the true value). The MSE is always non-negative, and values closer to zero indicate a higher level of reliability of our estimate. We obtain the RRMSE by taking the square root of the MSE (i.e., to calculate the Root Mean Squared Error, RMSE), and then dividing it by the corresponding estimate. RRMSEs are generally presented as percentages.
+One of the main advantages of using SAE is that a great deal of work has been carried out on how to estimate the measure of uncertainty of each small area estimate produced in each area. These measures of uncertainty are usually presented as Mean Squared Errors (MSE) or Relative Root Mean Squared Errors (RRMSE). The MSE is the averaged squared error of an estimate, representing the difference between the estimate value and the expected true value of what is measured. MSE is computed to account for both the variance of estimates (i.e., spread of estimates from one sample to another) and their bias (i.e., distance between the estimated value and the true value). The MSE is always non-negative, and values closer to zero indicate a higher level of reliability of our estimate. We obtain the RRMSE by taking the square root of the MSE (i.e., to calculate the Root Mean Squared Error, RMSE), and then dividing it by the corresponding estimate. RRMSEs are generally presented as percentages.
 
-Calculating the RRMSE of estimates allows examining which SAE method produces the most reliable estimates, but it also allows identifying which specific estimate in which specific area may suffer from inadequate reliability. Different statistical agencies use different threshold points to consider that an estimate is reliable enough. Here we consider that estimates with a RRMSE smaller than 25% are reliable, estimates with a RRMSE between 25% and 50% can be used with caution, and estimates with a RRMSE larger than 50% are too unreliable to be used [@commonwealth2015].
+Calculating the RRMSE of estimates allows examining which SAE method produces the most reliable estimates, but it also allows identifying which specific estimate in which specific area may suffer from inadequate reliability. Different statistical agencies use different threshold points to decide whether an estimate is reliable enough. Here we consider that estimates with a RRMSE smaller than 25% are reliable, estimates with a RRMSE between 25% and 50% can be used with caution, and estimates with a RRMSE larger than 50% are too unreliable to be used [@commonwealth2015].
 
-We will use the CV of direct estimates as their measure of uncertainty, since it corresponds to the RRMSE of model-based estimators [@rao2015]. To compute the RRMSE of our EBLUP estimates we follow the analytical procedure described in @datta2000.
+We will use the CV of direct estimates as the measure of uncertainty, since it corresponds to the RRMSE of model-based estimators [@rao2015]. To compute the RRMSE of our EBLUP estimates we follow the analytical procedure described in @datta2000.
 
 
 # 3. Small area estimation applications for crime analysis
@@ -84,12 +82,12 @@ SAE may be of great value for the study of crime and place: to estimate the geog
 
 Some researchers have applied different regression-based synthetic estimators to produce small area estimates of crime and disorder, but, as discussed above, these are known to suffer from a high risk of producing biased estimates [@levy1979; @rao2015].
 
-Others have used the basic unit-level or area-level EBLUP, or temporal and spatial extensions of the area-level EBLUP, to produce estimates of crime rates. @buelens2009 applied the area-level EBLUP to produce estimates of victimisation rates in police zones in Netherlands. Fay and colleagues developed an area-level dynamic SAE approach and produced estimates of crime rates in states and large counties in the US [@fay2012; @fay2015]. @dalo2012 made use of the unit-level and area-level EBLUP to produce estimates of violence against women at a regional level in Italy. And @builgil2019b and @builgil2019c applied spatial extension of the area-level EBLUP to produce estimates of worry about crime and perceived neighborhood disorder, respectively. Some researchers have also used Bayesian approaches to estimate victimization rates and confidence in the police [@law2014; @williams2019]. Here we will show how to produce area-level EBLUP estimates of trust in the police in Europe.
+Others have used the basic unit-level or area-level EBLUP, or temporal and spatial extensions of the area-level EBLUP, to produce estimates of crime rates. @buelens2009 applied the area-level EBLUP to produce estimates of victimisation rates in police zones in Netherlands. Fay and colleagues developed an area-level dynamic SAE approach and produced estimates of crime rates in states and large counties in the US [@fay2012; @fay2015]. @dalo2012 made use of the unit-level and area-level EBLUP to produce estimates of violence against women at a regional level in Italy. And @builgil2019b and @builgil2019c applied a spatial extension of the area-level EBLUP to produce estimates of worry about crime and perceived neighborhood disorder, respectively. Here we will show how to produce area-level EBLUP estimates of trust in the police in Europe.
 
 
 # 4. Small area estimation of trust in the police: Step-by-step example in `R`
 
-In this section we illustrate how to produce small area estimates with real-world data. More specifically, we will use data recorded by the ESS to produce estimates of trust in the police across regions in Europe. In practice, crime-and-place researchers will be more interested in applying SAE to estimate crime victimization, perceived safety and trust in the police at smaller spatial scales, but survey data with such level of spatial granularity are usually subject to great levels of scrutiny, and survey administrators tend not to publish micro-data at the level of small geographies. Access to such data is generally subject to special permissions and cannot be shared openly. The example shown here, however, will illustrate how to apply SAE methods to a variety of datasets and variables of interest.
+In this section we illustrate how to produce small area estimates with real-world data. More specifically, we will use data recorded by the ESS to produce estimates of trust in the police across regions in Europe. In practice, crime and place researchers will be more interested in applying SAE to estimate crime victimization, perceived safety and trust in the police at smaller spatial scales, but survey data with such level of spatial granularity are usually subject to great levels of scrutiny, and survey administrators tend not to publish micro-data at the level of small geographies. Access to such data is generally subject to special permissions and cannot be shared openly. The reproducible example shown here will illustrate how to apply SAE methods using open data, so it can be followed and used in a variety of other datasets and variables of interest.
 
 The exemplar study is designed for you to acquire a number of different practical skills, which include:
 
@@ -113,7 +111,7 @@ In this exemplar study we will use ESS data. The ESS is a biannual cross-nationa
 2. *"How safe do you – or would you – feel walking alone in this area after dark?"*
 3. *"Using this card, please tell me on a score of 0-10 how much you personally trust each of the institutions I read out [...]"*: *"[...] the legal system"* and *"[...] the police"*.
 
-These measures have previously been used to study victimization, perceived safety, trust in the police, and trust in the legal system [e.g., @hough2014; @hummelsheim2011; @kaariainen2007], but there are many other questions that may also be of interest for criminologists (e.g., racism, homophobia). The whole ESS questionnaire is available here: [https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf](https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf).
+These measures have previously been used to study victimization, perceived safety, trust in the police, and trust in the legal system [e.g., @hough2014; @hummelsheim2011; @kaariainen2007], but there are many other questions that may also be of interest (e.g., racism, homophobia). The whole ESS questionnaire is available here: [https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf](https://www.europeansocialsurvey.org/docs/round8/fieldwork/source/ESS8_source_questionnaires.pdf).
 
 With regards to the sampling design, participant countries are responsible for producing their own national sampling designs following some common sampling principles. Namely, respondents must be selected following strict random probability techniques at every stage, sampling frames can be individuals, households or addresses, quota sampling is not allowed, and non-responding units cannot be replaced. Moreover, every country must select at least 1,500 effective respondents (or at least 800 in countries with less than 2 million citizens). As a consequence, countries with very different population sizes may select similar sample sizes, and geographical levels below countries (e.g., regions, counties) are not planned by the original sampling design in most countries and suffer from small sample sizes.
 
@@ -124,7 +122,7 @@ ESS data can be downloaded from their website ([https://www.europeansocialsurvey
 
 ``` {r install packs, eval = FALSE}
 
-install.packages("essurvey") # install essurvey package
+install.packages("essurvey") #install essurvey package
 
 ```
 
@@ -132,7 +130,7 @@ Once it is installed, we can load the package into our `R` environment using the
 
 ```{r load essurvey}
 
-library(essurvey) # load essurvey package
+library(essurvey) #load essurvey package
 
 ```
 
@@ -161,22 +159,22 @@ ESS data from `r nrow(ess)` respondents across 20 different countries are now lo
 
 ## 4.2 Descriptive analyses
 
-In this exemplar study we will analyze ESS data about trust in police services, following previous research conducted by @kaariainen2007, @staubli2017 and others. The variable name is `trstplc`, and it a Likert scale variable from 0 to 10, where 0 indicates the lowest level of trust, and 10 is the maximum value. We will begin checking how this measure of trust in the police looks like. We will use the `summary()` function to obtain the summary statistics of this variable. First, however, we need to transform the class of this variable from 'haven_labelled' (i.e., SPSS variable handled in `R`) to numeric, to facilitate handling the data in `R`. We transform the variable using the `mutate()` function from `dplyr` package [@wickham2020] and convert it into numeric using the `as_numeric()` function.
+In this exemplar study we will analyze ESS data about trust in police services, following previous research conducted by @kaariainen2007, @staubli2017 and others. The variable name is `trstplc`, which uses a Likert scale variable from 0 to 10, where 0 indicates the lowest level of trust, and 10 is the maximum value. We will begin checking how this measure of trust in the police looks like. We will use the `summary()` function to obtain the summary statistics of this variable. First, however, we need to transform the class of this variable from 'haven_labelled' (i.e., SPSS variable handled in `R`) to numeric, to facilitate handling the data in `R`. We transform the variable using the `mutate()` function from `dplyr` package [@wickham2020] and convert it into numeric using the `as_numeric()` function.
 
 ```{r explore trust police}
 
-library(dplyr) # load dplyr package
+library(dplyr) #load dplyr package
 
 ess <- ess %>%                          #set dataset to use
   mutate(trstplc = as.numeric(trstplc)) #transform column to numeric
 
-summary(ess$trstplc) # print summary statistics
+summary(ess$trstplc) #print summary statistics
 
 ```
 
 We can see that the average score of trust in police in Europe is `r round(mean(ess$trstplc, na.rm = T), 2)`, and the median value is `r median(ess$trstplc, na.rm = T)`. We can use the same `summary()` function to analyze the values of trust in other social institutions, such as the legal system (variable `trstlgl`), politicians (`trtplt`), political parties (`trtprt`), the country's parliament (`trstprl`) or the United Nations (`trstun`). On average, Europeans appear to have more trust in the police than in other key political and legal institutions. We can also see that `r sum(length(which(is.na(ess$trstplc))))` persons did not answer this question (i.e., 'NAs').
 
-We can obtain some more detailed information about the citizens' trust in the police by counting the frequency of respondents that chose each score, and creating a bar plot to visualize their distribution. We will use functions from the the packages `dplyr` and `ggplot2` [@wickham2020b] for this. More specifically, we use the `group_by()` function from `dplyr` to create groups of respondents based on their score of trust in police, and use the functions `summarize()` and `mutate()` from the same package to save the results in two columns showing the number (`n`) and proportion (`prop`) of respondents in each category. We save this new table in a new dataset called `trust_poli`.
+We can obtain some more detailed information about the citizens' trust in the police by counting the frequency of respondents that chose each score, and creating a bar plot to visualize their distribution. We will use functions from the the packages `dplyr` and `ggplot2` [@wickham2020b] for this. More specifically, we use the `group_by()` function from `dplyr` to create groups of respondents based on their score of trust in police, and use the functions `summarize()` and `mutate()` from the same package to save the results in two columns showing the number (`n`) and proportion (`prop`) of respondents in each category. We save this table into a new data frame object called `trust_poli`.
 
 ```{r table trust police}
 
@@ -191,9 +189,9 @@ Then, we use the `ggplot()` and `geom_bar()` functions from `ggplot2` to create 
 
 ```{r plot trust police}
 
-library(ggplot2) # load ggplot2 package
+library(ggplot2) #load ggplot2 package
 
-theme_set(theme_minimal()) # set white theme for plots
+theme_set(theme_minimal()) #set white theme for plots
 
 ggplot(data = trust_poli,             #set dataset to use
        aes(x = trstplc, y = prop)) +  #set variables for x and y axis
@@ -202,30 +200,30 @@ ggplot(data = trust_poli,             #set dataset to use
 
 ```
 
-We see that only a small proportion of respondents have a low trust in the police, whereas most Europeans appear to trust their police forces quite a lot. This plot, nevertheless, is likely to hide internal heterogeneity between European regions and countries. Based on this bar graph alone, we do not have enough information to be able to know if residents in all participant countries have similar levels of trust in the police, or whether respondents with very low or very high trust in the police concentrate in some countries but not others.
+We see that only a small proportion of respondents have a low trust in the police, whereas most appear to trust their police forces quite a lot. This plot, nevertheless, is likely to hide internal heterogeneity between European regions and countries. Based on this bar graph alone, we do not have enough information to be able to know if residents in all participant countries have similar levels of trust in the police, or whether respondents with very low or very high trust in the police concentrate in some countries but not others.
 
 
 ### 4.2.1 Recode the measure of trust in police work
 
-In this exemplar study, we are particularly interested in analyzing which regions in Europe present especially low or high levels of trust in the police in comparison to other European countries. One way to do this is by estimating the proportion of residents in each region who have a level of trust above the average in Europe. Our final estimates will show a value between 0 and 1 representing the proportion of residents have more trust in the police than the European average. For instance, a value of 0.6 in a given region would indicate that 60 percent of its residents have more trust in the police than the average of all European citizens. 
+In this exemplar study, we are particularly interested in analyzing which regions in Europe present especially low or high levels of trust in the police in comparison to other European countries. One way to do this is by estimating the proportion of residents in each region who have a level of trust above the average in Europe. Our final estimates will show a value between 0 and 1 representing the proportion of residents that have more trust in the police than the European average. For instance, a value of 0.6 in a given region would indicate that 60 percent of its residents have more trust in the police than the average of all European citizens. 
 
-Thus, we need to recode our variable of interest. We will use the `mutate()` and `ifelse()` functions from `dplyr` to do so. Those respondents with a score above or equal to the European mean will be given a value `1`, whereas the others will be assigned a value of `0`. This will facilitate the interpretation of our results, but future research can explore producing estimates from the original 0-to-10 Likert scale. We will also delete all those respondents who did not answer this question (i.e., *NA*s).
+Thus, we need to recode our variable of interest. We will use the `mutate()` and `if_else()` functions from `dplyr` to do this. Those respondents with a score above or equal to the European mean will be given a value `1`, whereas the others will be assigned a value of `0`. This will facilitate the interpretation of our results, but future research can explore producing estimates from the original 0-to-10 Likert scale. We will also delete all those respondents who did not answer this question (i.e., *NA*s).
 
 ``` {r recode trustpoli}
 
 ess <- ess %>%           #set dataset to use
          #if trust above or equal to mean, assign 1, if not 0
-  mutate(trstplc = ifelse(trstplc >= mean(trstplc, na.rm = T), 1, 0)) %>%
+  mutate(trstplc = if_else(trstplc >= mean(trstplc, na.rm = T), 1, 0)) %>%
   filter(!is.na(trstplc))#delete NAs
 
 ```
 
-We can also use the `group_by()` and `summarize()` functions seen above to explore how our recoded variable looks like. We can see, for example, that `r length(which(ess$trstplc == 1))` out of `r length(which(!is.na(ess$trstplc)))` respondents (i.e., `r round((length(which(ess$trstplc == 1)) / length(which(!is.na(ess$trstplc))))*100, 2)`% of participants) have more trust in the police than the average in Europe.
+We can also use the `group_by()` and `summarize()` functions seen above to explore our recoded variable. We can see, for example, that `r length(which(ess$trstplc == 1))` out of `r length(which(!is.na(ess$trstplc)))` respondents (i.e., `r round((length(which(ess$trstplc == 1)) / length(which(!is.na(ess$trstplc))))*100, 2)`% of participants) have more trust in the police than the average in Europe.
 
 
 ## 4.3 Exploring spatial data: Coverage and sample sizes
 
-As mentioned above, the ESS sampling design is planned to allow producing reliable direct estimates at the country level in most countries, but samples recorded at smaller scales (e.g., regions, cities) may be too small to allow producing direct estimates of adequate precision in all areas. We can check how large ESS sample sizes are in each region (variable `region`) using the functions `filter()`, `group_by()` and `summarize()` from `dplyr` to create a summary table in a new dataframe that we will call `sample_region`. Then, we can use the `summary()` function to print the summary statistics of area sample sizes.
+As mentioned above, the ESS sampling design is designed to allow the production of reliable direct estimates at the country level, but samples recorded at smaller scales (e.g., regions, cities) may be too small to allow producing direct estimates with adequate precision in all areas. We can check how large ESS sample sizes are in each region (variable `region`) using the functions `filter()`, `group_by()` and `summarize()` from `dplyr` to create a summary table in a new data frame that we will call `sample_region`. We will also remove one unit that has missing data in the `region` column (i.e., value 99999). Then, we can use the `summary()` function to print the summary statistics of area sample sizes.
 
 ```{r sample regions}
 
@@ -234,7 +232,7 @@ sample_region <- ess %>%     #set dataset to use
   group_by(region) %>%       #categories based on region
   summarize(n = n())         #calculate sample size
 
-summary(sample_region$n) # print summary statistics
+summary(sample_region$n) #print summary statistics
 
 ```
 
@@ -262,12 +260,12 @@ In order to convert the spatial information provided by ESS into NUTS-2 geograph
 
 ``` {r read lookup}
 
-library(RCurl) # load RCurl package
+library(RCurl) #load RCurl package
 
-# save URL address as character value
+#save URL address as character value
 url_lookup <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/NUTS_lookup.csv")
 
-lookup <- read.csv(text = url_lookup) # load lookup table
+lookup <- read.csv(text = url_lookup) #load lookup table
 
 ```
 
@@ -275,14 +273,14 @@ Now, we can create a new column in the original ESS data that specifies the regi
 
 ``` {r ess nuts3 in nuts2}
 
-ess <- ess%>%                               #set dataset to use
+ess <- ess%>%                                #set dataset to use
   left_join(lookup, 
-            by = c("region" = "nuts3")) %>% #merge lookup into ESS dataset
-  rename(domain = nuts2) %>%                #rename NUTS2 variable as domain
-  mutate(domain = as.character(domain),     #convert NUTS2 into character
-         domain = ifelse(is.na(domain), 
-                         region, domain))%>%#copy NUTS1 if there is no NUTS2
-  filter(!(domain == 99999))                #delete NAs
+            by = c("region" = "nuts3")) %>%  #merge lookup into ESS dataset
+  rename(domain = nuts2) %>%                 #rename NUTS2 variable as domain
+  mutate(domain = as.character(domain),      #convert NUTS2 into character
+         domain = if_else(is.na(domain), 
+                          region, domain))%>%#copy NUTS1 if there is no NUTS2
+  filter(!(domain == 99999))                 #delete NAs
 
 ```
 
@@ -297,7 +295,7 @@ In order to produce small area estimates, we will use the `sae` package [@molina
 
 ``` {r load sae}
 
-library(sae) # load sae package
+library(sae) #load sae package
 
 ```
 
@@ -310,14 +308,14 @@ I have previously downloaded the regional population sizes from Eurostat and upl
 
 ``` {r read population}
 
-# save URL address as character value
+#save URL address as character value
 url_pop <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/data/popsize.csv")
 
-pop <- read.csv(text = url_pop) # load population size
+pop <- read.csv(text = url_pop) #load population size
 
 ```
 
-We have almost all information necessary to produce our direct estimates: *(a)* the variable of interest (column `trstplc` in `ess` dataset), *(b)* the area population size (`pop2016` in `pop` dataset), and *(c)* spatial information that matches both datasets. Nevertheless, as introduced above, direct estimators also require the use of survey weights that adjust our sample size to the population size in each.
+We have almost all the information necessary to produce our direct estimates: *(a)* the variable of interest (column `trstplc` in `ess` dataset), *(b)* the area population size (`pop2016` in `pop` dataset), and *(c)* spatial information that matches both datasets. Nevertheless, as introduced above, direct estimators also require the use of survey weights that adjust our sample size to the population size in each.
 
 
 ### 4.4.2 Readjust ESS weights
@@ -361,7 +359,7 @@ Once we have produced our direct estimates of trust in the police, we can see ho
 
 ``` {r summary dir}
 
-summary(dir$Direct) # summary statistics of direct estimates
+summary(dir$Direct) #summary statistics of direct estimates
 
 ```
 
@@ -371,7 +369,7 @@ However, we do not know yet how reliable these direct estimates are. You can exp
 
 ``` {r summary cv}
 
-summary(dir$CV) # summary statistics of CV
+summary(dir$CV) #summary statistics of CV
 
 ```
 
@@ -381,15 +379,15 @@ For now, we will merge our direct estimates into the dataset of area-level infor
 
 ``` {r copy dir into pop}
 
-pop <- pop %>%                              # set dataset to use
-  left_join(dir, by = c("area" = "Domain")) # merge direct estimates
+pop <- pop %>%                             #set dataset to use
+  left_join(dir, by = c("area" = "Domain"))#merge direct estimates
 
 ```
 
 
 ## 4.5 Downloading area-level covariates
 
-In order to estimate area-level models and produce model-based small area estimates of trust in the police, we need area-level covariates associated with our variable of interest. We may need to conduct some preliminary literature review to explore which contextual features have been used to explain our variable of interest. For example, in our case, we can read key articles and books analyzing the contextual predictors of trust in the police in European countries, such as @jackson2013, @kaariainen2007 and @staubli2017, but also in other contexts [e.g., @cao2012]. For instance, w can see that researchers have used measured related to crime rates, education level, income and level of democracy, among others, to explain the meso- and macro-level spatial distribution of trust in the police. We will download and use data about some of these covariates to estimate our area-level models and produce model-based estimates of trust in the police.
+In order to estimate area-level models and produce model-based small area estimates of trust in the police, we need area-level covariates associated with our variable of interest. We may need to conduct a preliminary literature review to explore which contextual features have been used to explain our variable of interest. For example, in our case, we can read key articles and books analyzing the contextual predictors of trust in the police in European countries, such as @jackson2013, @kaariainen2007 and @staubli2017, but also in other contexts [e.g., @cao2012]. For instance, we can see that researchers have used measures related to crime rates, education level, income and level of democracy, among others, to explain the meso- and macro-level spatial distribution of trust in the police. We will download and use data about some of these covariates to estimate our area-level models and produce model-based estimates of trust in the police.
 
 We can download various area-level covariates from Eurostat using the `eurostat` package [@lahti2020]. Eurostat publishes large datasets of social, economic and demographic information for European countries and regions. We can use the `search_eurostat()` function to search predefined key words associated with variables of interest for our study, such as *"education"* or *"offender"*. This function will return a list of all available datasets including our keywords. We can save this list and explore which datasets may be more suitable for our area-level models. For example, we may want to know if education levels and crime rates are somehow associated with the regional levels of trust in the police. I have done this search and found various variables of interest, but you can also try this at home, and probably you will find other interesting datasets to be used in this study.
 
@@ -402,7 +400,7 @@ eurostat_cri <- search_eurostat("offender")  #search data about crime
 
 ```
 
-We can see, for example, that our search has found 1006 datasets that contain the word *"education"*, and 4 that contain the word *"offender"*. We will need to spend some time searching which covariates are the most suitable for our study. Once we know the codes of the datasets we are interested to use, we can use the `get_eurostat()` function to import these into our `R` system. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 that have a higher education degree in each region. We can download this dataset and see how it looks like:
+We can see, for example, that our search has found 1006 datasets that contain the word *"education"*, and 4 that contain the word *"offender"*. We will need to spend some time searching which covariates are the most suitable for our study. Once we know the codes of the datasets we are interested to use, we can use the `get_eurostat()` function to import these into our `R` system. For example, the dataset `edat_lfs_9918` includes information about the proportion of citizens between 15 and 64 that have a higher education degree in each region. We can download this dataset and see what it looks like:
 
 ```{r get higher edu, eval=FALSE}
 
@@ -410,7 +408,7 @@ he <- get_eurostat(id = "edat_lfs_9918") #download data from Eurostat
 
 ```
 
-This is only one possible source of data that we can use to find covariates for our area-level models. The ESS website, for example, also publishes interesting covariates at the different spatial scales ([https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html)). In any case, we will need to spend some time wrangling and subsetting these sources data to make sure we can use them as covariates in our models. 
+This is just one possible source of data that we can use to find covariates for our area-level models. The ESS website, for example, also publishes interesting covariates at the different spatial scales ([https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html](https://www.europeansocialsurvey.org/data/multilevel/guide/bulk.html)). In any case, we will need to spend some time wrangling and subsetting these sources data to make sure we can use them as covariates in our models. 
 
 For the purpose of this exemplar study, I have previously searched for datasets of interest, downloaded and cleaned their data, and merged all covariates into a unique dataset. I have also used multiple imputation via bootstrapping and predictive mean matching to impute a few missing values in some regions (see original codes used to impute missing values here: [https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R](https://github.com/davidbuilgil/SAE_chapter/blob/master/other_codes/codes_imputation.R)). We can load the dataset with our clean and ready-to-use covariates into `R` using the functions provided by `RCurl` package, but you can also spend some time trying to find better, more suitable covariates using the `eurostat` package.
 
@@ -440,7 +438,7 @@ One may notice that all these covariates represent data from 2016, with the exce
 
 ## 4.6 Fitting area-level models and obtaining synthetic estimates
 
-All our area-level variables (i.e., outcome measure measured by the direct estimates, and covariates) are now clean and ready to be used to produce small area estimates. The first step, as discussed before, is fitting an area-level model that links our direct estimates with our covariates. We will use the `lm()` function to fit our area-level linear model, and we can see the results of our model using the `summary()` function.
+All our area-level variables (i.e., outcome measures measured by the direct estimates, and covariates) are now clean and ready to be used to produce small area estimates. The first step, as discussed before, is fitting an area-level model that links our direct estimates with our covariates. We will use the `lm()` function to fit our area-level linear model, and we can see the results of our model using the `summary()` function.
 
 ``` {r fit model}
 
@@ -451,7 +449,7 @@ model <- lm(Direct ~ fem_p_16  + gdp_eurhab_16 + robb_r_10 +
 
 ```
 
-As you may have already noticed, we are using covariates with very different scales and dimensions. For example, the covariate about GDP per capita has a minimum value of `r min(pop$gdp_eurhab_16)` and its maximum is `r max(pop$gdp_eurhab_16)`, whereas the variable about proportion of females ranges between `r round(min(pop$fem_p_16), 2)` and `r round(max(pop$fem_p_16), 2)`, and our covariate measuring rate of robberies varies between `r round(min(pop$robb_r_10), 2)` and `r round(max(pop$robb_r_10), 2)`. This is not problematic for regression analysis nor SAE, but we may want to standardize the regression coefficients when presenting the model results, in order to be able to compare the relative importance of each covariate in our model [see @gelman2008]. We can do this by scaling all our variables using the `scale()` function before fitting the linear model. Model results are shown in Table 1. Scaling our variables does not have any effect on our analyses, but allows us to better understand the effect of each covariate in our regression model.
+As you may have already noticed, we are using covariates with very different scales and dimensions. For example, the covariate about GDP per capita has a minimum value of `r min(pop$gdp_eurhab_16)` and its maximum is `r max(pop$gdp_eurhab_16)`, whereas the variable about proportion of females ranges between `r round(min(pop$fem_p_16), 2)` and `r round(max(pop$fem_p_16), 2)`, and our covariate measuring rate of robberies varies between `r round(min(pop$robb_r_10), 2)` and `r round(max(pop$robb_r_10), 2)`. This is not problematic for regression analysis nor SAE, but we may want to standardize the regression coefficients when presenting the model results, in order to be able to compare the relative importance of each covariate in our model [see @gelman2008]. We can do this by scaling all our variables using the `scale()` function before fitting the linear model. Model results are shown in Table 1. Scaling our variables does not have any effect on our analyses, but allows us to better understand the effect of each covariate in our regression model. For the purpose of this study, we will consider that any p-value of less than 0.05 is significant.
 
 ``` {r model output, echo = FALSE}
 
@@ -470,20 +468,27 @@ model_tab <- xtable(summary(model.sc)$coef, digits=c(0, 2, 2, 1, 2),
 
 ```
 
-`r model_tab`
+```{r model output print, echo = FALSE, message = FALSE, results = 'asis'}
+
+knitr::kable(model_tab, 
+             digits  = 2, 
+             caption = "Table 1: Area-level model of trust in the police (standardized coefficients)", 
+             format  = "pandoc")
+
+``` 
 
 We can see in Table 1 that those European regions with a larger GDP per capita are also those with more trust in the police. We also see that areas with a larger proportion of females show lower values of trust in the police, areas with more citizens with a higher education qualification generally have more trust in the police, and the median age is positively associated with the area-level measure of trust in police (ageing regions trust more the police than areas with younger populations). The two measures of crime rates show a negative coefficient, but these are not statistically significant.
 
 We can also check the model R squared by running `summary(model)$r.squared` and observe that the R Squared equals `r round(summary(model)$r.squared, 2)`, which indicates that our model accounts for `r round(summary(model)$r.squared, 2)*100`% of the variation of the direct estimates of trust in police.
 
-The next step is using this area-level linear model to obtain our regression-based synthetic estimates of trust in the police. As discussed above regression-based estimators can be produced for all areas, but these are not based on a direct measurement of the variable in each area and suffer from a high risk of bias [@levy1979]. We use the `predict()` function to produce synthetic estimates from our area-level linear model, and then we can merge our synthetic estimates with our main dataset with regional data using the `cbind()` function.
+The next step is using this area-level linear model to obtain our regression-based synthetic estimates of trust in the police. As discussed above, regression-based estimators can be produced for all areas, but these are not based on a direct measurement of the variable in each area and suffer from a high risk of bias [@levy1979]. We use the `predict()` function to produce synthetic estimates from our area-level linear model, and then we can merge our synthetic estimates with our main dataset with regional data using the `cbind()` function.
 
 ``` {r predict lm}
 
-synthetic <- predict(model) # predict synthetic estimates
+synthetic <- predict(model) #predict synthetic estimates
 
-pop <- pop %>%     # set dataset to use
-  cbind(synthetic) # merge regression-based estimates
+pop <- pop %>%     #set dataset to use
+  cbind(synthetic) #merge regression-based estimates
 
 ```
 
@@ -509,7 +514,7 @@ We can get the summary of the EBLUP model results by running `eblup$fit`, and ob
 
 ``` {r summary eblup}
 
-summary(eblup$eblup) # print summary statistics of EBLUPs
+summary(eblup$eblup) #print summary statistics of EBLUPs
 
 ```
 
@@ -532,24 +537,24 @@ Now that we have computed our model-based estimates of trust in the police, we c
 
 ```{r load geojson, results="hide"}
 
-library(sf) # load sf package
+library(sf) #load sf package
 
-# save URL address as character value
+#save URL address as character value
 url_nuts <- getURL("https://raw.githubusercontent.com/davidbuilgil/SAE_chapter/master/shapefile/nuts_ess8.geojson")
 
-nuts <- st_read(url_nuts) # load shapefile
+nuts <- st_read(url_nuts) #load shapefile
 
 ```
 
-We will also use the `st_crs()` function from `sf` to change the Coordinate Reference Systems (CRS) to ED79, which shows a much more clear visualization of Europe.
+We will also use the `st_crs()` function from `sf` to change the Coordinate Reference Systems (CRS) to ED79, which shows a much clearer visualization of Europe.
 
 ``` {r change crs}
 
-st_crs(nuts) <- 15752 # change CRS to ED79 (EPSG:4668 with transformation)
+st_crs(nuts) <- 15752 #change CRS to ED79 (EPSG:4668 with transformation)
 
 ```
 
-Our shapefile of European regions is now ready, but we still need to attach our EBLUP estimates of trust in the police before we can visualize these. We can use function from the `dplyr` package seen above to do this.
+Our shapefile of European regions is now ready, but we still need to attach our EBLUP estimates of trust in the police before we can visualize them. We can use function from the `dplyr` package seen above to do this.
 
 ``` {r map estimates}
 
@@ -572,12 +577,12 @@ ggplot(data = geodata) +                       #set shapefile to use
 
 ```
 
-The map shows how trust is the police is generally larger in the North of Europe, especially in regions of Finland, Norway and Iceland. Some regions in Central Europe (e.g., Switzerland, Germany and Austria) also have large estimates of trust in the police. On the opposite side, many regions in Eastern Europe, especially in Poland, Lithuania and Hungary, have much lower levels of trust in the police. There are also regions in South Europe where the estimates are trust in police are low, such as some regions in Italy and Portugal. We also observe important heterogeneity within some countries. In Spain, for example, our estimates of trust in the police show much lower scores in the Basque Country and Catalonia than in the rest of the country.
+The map shows how trust is the police is generally larger in the North of Europe, especially in regions of Finland, Norway and Iceland. Some regions in Central Europe (e.g., Switzerland, Germany and Austria) also have large estimates of trust in the police. On the opposite side, many regions in Eastern Europe, especially in Poland, Lithuania and Hungary, have much lower levels of trust in the police. There are also regions in South Europe where the estimates of trust in police are low, such as some regions in Italy and Portugal. We also observe important heterogeneity within some countries. In Spain, for example, our estimates of trust in the police show much lower scores in the Basque Country and Catalonia than in the rest of the country.
 
 
 ## 4.8 Computing the RRMSE of EBLUP estimates
 
-One of the main benefits of using SAE is that we can estimate the reliability of each small area estimate. This allows to check if using model-based SAE is useful to improve the reliability of our estimates in all areas, or whether model-based estimates are reliable in some areas but not others.
+One of the main benefits of using SAE is that we can estimate the reliability of each small area estimate. This allows us to check if using model-based SAE is useful to improve the reliability of our estimates in all areas, or whether model-based estimates are reliable in some areas but not others.
 
 We will calculate the RRMSE of our EBLUP estimates following an analytical approximation as in @datta2000, and then compare the measures of reliability of our model-based estimates with the CV of the direct estimates [@rao2015]. We use the `mseFH()` function from `sae` to calculate the MSE of our estimates. The arguments of this functions are the same used before in the `eblupFH()` function.
 
@@ -626,7 +631,7 @@ pop %>%                                #set dataset to use
 
 ```
 
-We had seen before that smaller values of RRMSE indicate a better reliability of estimates, and estimates with a RRMSE smaller than 25% may be considered reliable enough to be used for research, policy making and policing operational decisions. We can see that our EBLUP estimates of trust in the police are more reliable than the direct estimates in every single region, and EBLUP estimates have much larger levels of reliability in those areas where original sample sizes where smaller. All our EBLUP estimates have levels of RRMSE below 25%. This is a very good indicator of reliability of our estimates.
+We had seen before that smaller values of RRMSE indicate a better reliability of estimates, and estimates with a RRMSE smaller than 25% may be considered reliable enough to be used for research, policy making and policing operational decisions. We can see that our EBLUP estimates of trust in the police are more reliable than the direct estimates in every single region, and EBLUP estimates have much higher levels of reliability in those areas where original sample sizes where smaller. All our EBLUP estimates have levels of RRMSE below 25%. This is a sound indicator of reliability in our estimates.
 
 
 ## 4.9 Model diagnostics
@@ -637,35 +642,33 @@ We will use the `ggplot2` library to code our two scatter plots, and visualize t
 
 ``` {r plot dir vs eblup}
 
-library(gridExtra) # load gridExtra package
+library(gridExtra) #load gridExtra package
 
-# plot direct estimates against EBLUPs
+#plot direct estimates against EBLUPs
 dir_vs_EBLUP <- ggplot(pop, aes(x = Direct, y = eblup)) + 
                 geom_point() +
                 ggtitle("Direct versus EBLUP estimates") +
                 theme(aspect.ratio = 1)
 
-# plot direct estimates against synthetic estimates
+#plot direct estimates against synthetic estimates
 dir_vs_synth <- ggplot(pop, aes(x=Direct, y=synthetic)) + 
                 geom_point() +
                 ggtitle("Direct versus synthetic estimates") +
                 theme(aspect.ratio = 1)
 
-# visualize the two plots next to each other
+#visualize the two plots next to each other
 grid.arrange(dir_vs_EBLUP, dir_vs_synth, ncol = 2)
 
 ```
 
-There is a much stronger linear association between our EBLUP estimates and the direct estimates than between synthetic estimates and direct estimates. In other words, regression-based synthetic estimates suffer from a high risk of bias arising from the model, whereas EBLUP estimates are generally unbiased. We can further explore this by analyzing the Spearman's rank correlation (i.e., `cor.test(pop$Direct, pop$eblup, method = "spearman")`), which indicates that the rank correlation between EBLUP and direct estimates equals `r round(cor.test(pop$Direct, pop$eblup, method = "spearman")$estimate, 2)` (p-value < 0.001), whereas such correlation is only `r round(cor.test(pop$Direct, pop$synthetic, method = "spearman")$estimate, 2)` (p-value < 0.001) when we compare direct estimates with regression-based synthetic estimates.
-
-We can also calculate the model standardized residuals and present the Normal Q-Q plots of residuals in order to check their normality [see @builgil2019b for an example]. 
+There is a much stronger linear association between our EBLUP estimates and the direct estimates than between synthetic estimates and direct estimates. In other words, regression-based synthetic estimates suffer from a high risk of bias arising from the model, whereas EBLUP estimates are generally unbiased. We can further explore this by analyzing the Spearman's rank correlation (i.e., `cor.test(pop$Direct, pop$eblup, method = "spearman")`), which indicates that the rank correlation between EBLUP and direct estimates equals `r round(cor.test(pop$Direct, pop$eblup, method = "spearman")$estimate, 2)` (p-value < 0.001), whereas such correlation is only `r round(cor.test(pop$Direct, pop$synthetic, method = "spearman")$estimate, 2)` (p-value < 0.001) when we compare direct estimates with regression-based synthetic estimates. We can also calculate the model standardized residuals and present their Normal Q-Q plots in order to check the normality of the residuals [see @builgil2019b for an example]. 
 
 
 # 5. Final remarks
 
 Research on crime and place is moving toward the study of very detailed levels of analysis, such as street segments and addresses [@groff2010; @weisburd2012]. In order to analyze the concentration of crime at such detailed level of spatial granularity, it is key to ensure that data are not affected by sampling bias, coverage error or measurement error [see @brantingham2018]. Victimization surveys provide key information to study crime (known and unknown to the police) and trust in the police [@rosenbaum1995; @xie2019], but these surveys are not designed to produce reliable direct analyses at the increasingly refined spatial scales of the criminology of place. Victimization surveys are generally designed to allow producing precise direct estimates for very large areas, such as countries or states, but sample sizes in smaller areas are usually too small to allow producing direct estimates of adequate precision. Model-based SAE techniques may be used to improve the reliability of small area estimates produced from victimization surveys for place and crime research [e.g., @buelens2009; @builgil2019c]. Here we have seen how the area-level EBLUP, which is one of the basic approaches for model-based SAE [@rao2015], may be used to produce reliable small area estimates of trust in the police even when original sample sizes are too small to allow producing reliable direct estimates. Model-based SAE techniques can also be applied to produce estimates of crime in areas [@fay2015].
 
-In this chapter, we have seen how the ESS records and publishes highly relevant data to analyze crime in Europe, but crime analysts and criminologists may also explore the use of many other surveys that include measures of victimization and trust in the police in other countries. For instance, the NCVS and the CSEW record many questions to study crime and police legitimacy, and SAE can be applied from their data to produce small area estimates of crime and many crime-related measures. The main limitations one may encounter when aiming to apply SAE to data recorded from victimization surveys are *(a)* low-level geographical information may not be published openly, *(b)* difficulty to find adequate covariates to estimate SAE models, and *(c)* inadequacy of traditional model-based SAE approaches to estimate parameters under non-normal distributions (e.g., Poisson distribution, zero-inflated distributions). With regards to the first issue (i.e., low-level spatial data not being published), researchers sometimes need to request special access to such data via safe rooms. In some cases, this process may take months since one start filling the form to request access to secure data until the data are finally received. The second limitation (i.e., access to adequate covariates) is sometimes difficult to solve, since model-based SAE applications frequently rely on public administrations making data open access, which we then use as covariates in our models. The access to high-quality open data is, once again, key for research. Finally, with regards to the limitations of traditional model-based SAE to estimate parameters under non-normal distributions, we can highlight that a new generation of SAE researchers are today investigating into the development of more refined techniques to estimate parameters under more complex distributions. Crime and place research will clearly benefit from new techniques that allow estimating parameters of variables with zero-inflated and Poisson distributions that typically define crime victimization data.
+In this chapter, we have seen how the ESS records and publishes highly relevant data to analyze crime in Europe, but crime analysts and criminologists may also explore the use of many other surveys that include measures of victimization and trust in the police in other countries. For instance, the NCVS and the CSEW record many questions to study crime and police legitimacy, and SAE can be applied from their data to produce small area estimates of crime and many crime-related measures. The main limitations one may encounter when aiming to apply SAE to data recorded from victimization surveys are *(a)* low-level geographical information may not be published openly, *(b)* difficulty in finding adequate covariates to estimate SAE models, and *(c)* inadequacy of traditional model-based SAE approaches to estimate parameters under non-normal distributions (e.g., Poisson distribution, zero-inflated distributions). With regards to the first issue (i.e., low-level spatial data not being published), researchers sometimes need to request special access to such data via safe rooms. In some cases, the process of requesting access and receiving the data can take months. The second limitation (i.e., access to adequate covariates) is sometimes difficult to solve, since model-based SAE applications frequently rely on public administrations making data open access, which we then use as covariates in our models. The access to high-quality open data is, once again, key for research. Finally, with regards to the limitations of traditional model-based SAE to estimate parameters under non-normal distributions, we can highlight that a new generation of SAE researchers are today investigating the development of more refined techniques to estimate parameters under more complex distributions. Crime and place research will clearly benefit from new techniques that allow estimating parameters of variables with zero-inflated and Poisson distributions that typically define crime victimization data.
 
 
 # Author bio
