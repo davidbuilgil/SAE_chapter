@@ -554,7 +554,7 @@ st_crs(nuts) <- 15752 #change CRS to ED79 (EPSG:4668 with transformation)
 
 ```
 
-Our shapefile of European regions is now ready, but we still need to attach our EBLUP estimates of trust in the police before we can visualize them. We can use function from the `dplyr` package seen above to do this.
+Our shapefile of European regions is now ready, but we still need to attach our EBLUP estimates of trust in the police before we can visualize them. We can use functions from the `dplyr` package seen above to do this.
 
 ``` {r map estimates}
 
