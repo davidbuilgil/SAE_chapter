@@ -105,7 +105,7 @@ The exemplar study is designed for you to acquire a number of different practica
 
 ## 4.1 European Social Survey
 
-In this exemplar study we will use ESS data. The ESS is a biannual cross-national survey designed to measure social attitudes, beliefs and behaviors in Europe. It has been conducted since 2001 in more than 35 countries, and is designed to be representative of all individual residents aged 15 or older who live in private households in each participant country, regardless of their nationality, citizenship or language. The ESS allows for cross-national and cross-sectional comparisons of crime-related issues such as the trust in police services, worry about crime and crime victimization experienced in the last 5 years. For instance, it includes the following variables of interest for crime analysts:
+In this exemplar study we will use ESS data. The ESS is a biannual cross-national survey designed to measure social attitudes, beliefs and behaviors in Europe. It has been conducted since 2001 in more than 35 countries, and is designed to be representative of all individual residents aged 15 or older who live in private households in each participant country, regardless of their nationality, citizenship or language. The ESS allows for cross-national and temporal comparisons of crime-related issues such as the trust in police services, worry about crime and crime victimization experienced in the last 5 years. For instance, it includes the following variables of interest for crime analysts:
 
 1. *"Have you or a member of your household been the victim of a burglary or assault in the last 5 years?"*
 2. *"How safe do you – or would you – feel walking alone in this area after dark?"*
