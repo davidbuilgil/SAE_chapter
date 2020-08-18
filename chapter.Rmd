@@ -678,7 +678,7 @@ David Buil-Gil is a Research Fellow at the Department of Criminology of the Univ
 
 # Acknowledgments
 
-The author would like to thank Samuel Langton and Angelo Moretti for comments that greatly improved the manuscript.
+The author would like to thank Samuel Langton and Angelo Moretti for comments that greatly improved the manuscript. This work is supported by the Secondary Data Analysis Initiative of the Economic and Social Research Council, UK (project ES/T015667/1).
 
 
 # References
