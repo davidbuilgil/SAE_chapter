@@ -8,9 +8,9 @@ author: |
   | Department of Criminology, University of Manchester, UK
 date: "08/06/2020"
 output:
-  word_document: default
   pdf_document:
         latex_engine: xelatex
+  word_document: default
 bibliography: refs.bib
 csl: apa.csl
 ---
@@ -25,6 +25,8 @@ library(dplyr)
 options(tinytex.verbose = TRUE)
 options(xtable.comment = FALSE)
 ```
+
+This is an unedited draft, not for citation, of a book chapter that has been accepted for publication in E. Groff and C. Haberman (Eds.), The study of crime and place: A methods handbook (Temple University Press, 2021). Temple University Press retains all rights and subrights of this document. This pre-print is not published under a CC license.
 
 **Contact details:** David Buil-Gil. G18 Humanities Bridgeford Street Building, Cathie Marsh Institute for Social Research, University of Manchester. E-mail address: *david.builgil@manchester.ac.uk*
 
